@@ -1,0 +1,28 @@
+{
+  "name": "Journomini",
+  "description": "Anoxic's own ominibox twist",
+  "version": "0.1",
+  "browser_action": {
+    "default_title": "Sign in",
+    "default_popup": "./popup.html"
+  },
+  "background": {
+    "scripts": [ "background.js" ]
+  },
+  "omnibox": { "keyword": "j" },
+  "permissions": [
+    "storage",
+    "webRequest",
+    "*://*/*",
+    "webRequestBlocking"
+  ],
+  "content_scripts": [
+    {
+      "matches": [ "*://*/*" ],
+      "js": [ "script.js" ],
+      "run_at": "document_end"
+    }
+  ],
+  "manifest_version": 2,
+  "content_security_policy": "script-src 'self' https://js.live.net; object-src 'self'"
+}
