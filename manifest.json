@@ -7,13 +7,17 @@
     "default_popup": "./popup.html"
   },
   "background": {
-    "scripts": [ "background.js" ]
+    "scripts": [
+      "jquery.min.js",
+      "background.js"
+    ]
   },
   "omnibox": { "keyword": "j" },
   "permissions": [
     "storage",
     "webRequest",
     "*://*/*",
+    "notifications",
     "webRequestBlocking"
   ],
   "content_scripts": [
@@ -23,6 +27,5 @@
       "run_at": "document_end"
     }
   ],
-  "manifest_version": 2,
-  "content_security_policy": "script-src 'self' https://js.live.net; object-src 'self'"
+  "manifest_version": 2
 }

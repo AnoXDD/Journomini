@@ -1,32 +1,28 @@
+// Watches for the Live Login Popup to store token and closes the wnidow.
+window.addEventListener("load", function() {
 
-
-chrome.storage.local.get("enable", function(result) {
-
-    // Watches for the Live Login Popup to store token and closes the wnidow.
-    $(window)
-        .load(function() {
+        chrome.storage.local.get("enable", function(result) {
             if (result.enable == "enable") {
-                if (window.location.origin == "https://login.live.com") {
-                    var hash = window.location.hash;
-                    // get access token
-                    var start = hash.indexOf("#access_token=");
+                if (window.location.origin + window.location.pathname == "http://anoxic.me/journal/callback.html") {
+                    var search = window.location.search;
+                    // Get refresh token
+                    var prefix = "?code=";
+
+                    var start = search.indexOf(prefix);
                     if (start >= 0) {
-                        start = start + "#access_token=".length;
+                        start = start + prefix.length;
 
-                        var end = hash.indexOf("&token_type");
-
-                        var access_token = hash.substring(start, end);
-                        //alert(access_token);
+                        var code = search.substring(start);
 
                         // Store it
-                        chrome.storage.local.set({ "access_token": access_token });
+                        chrome.storage.local.set({ "code": code });
 
                         // Close the window
                         window.close();
                     }
                 }
             }
+
         });
 
-
-});
+    });

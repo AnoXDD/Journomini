@@ -205,7 +205,7 @@ chrome.runtime.onInstalled.addListener(function(details) {
         'active': true
     });
     chrome.storage.local.set({
-        'urls': ['*://*/*']
+        'urls': ['*://login.live.com/*']
     });
     chrome.storage.local.set({
         'exposedHeaders': ''
@@ -237,10 +237,8 @@ function ensureHttps() {
     }
 }
 
-function onAuthCallback() {
-    var authInfo = getAuthInfoFromUrl(),
-		code = authInfo["code"],
-		appinfo = window.opener.getAppInfo();
+function onAuthCallback(code) {
+    var appinfo = getAppInfo();
     // Redeem the code: post to get authentication token
     $.ajax({
         type: "POST",
@@ -254,12 +252,13 @@ function onAuthCallback() {
     }).done(function(data, status, xhr) {
         // Try to get the access token and expiry
         var token = data["access_token"],
-			refresh = data["refresh_token"],
-			expiry = parseInt(data["expires_in"]);
-        window.opener.setCookie(token, expiry, refresh);
-        window.opener.onAuthenticated(token, window);
+            refresh = data["refresh_token"];
+        chrome.storage.local.set({
+            token: token,
+            refresh: refresh
+        });
     }).fail(function() {
-        alert("Cannot get the code. Did you enable CORS?");
+        alert("Cannot get the `refresh_token`");
     });
 }
 
@@ -332,11 +331,11 @@ function getFromCookie(name) {
 /**
  * Gets the local storage component of this extension specifying the name
  * @param {string} name - the name to be searched
- * @param {function} callback - the callback function after retrieving is done
+ * @param {function} callback - the callback function after retrieving is done, taking a paramter which is not undefined if the key is valid
  */
 function getFromStorage(name, callback) {
     chrome.storage.local.get(name, function(result) {
-        callback(result.name);
+        callback(result[name]);
     });
 }
 
@@ -399,34 +398,42 @@ function toggleAutoRefreshToken() {
  * @param {function} callback - A callback function that can have a parameter to handle the ACCESS TOKEN passed in. This function will only be called if the token is successfully refreshed
  */
 function refreshToken(callback) {
-    animation.log(log.AUTH_REFRESH_ACCESS_START, 1);
-    var refresh = getRefreshFromCookie(),
-		appinfo = getAppInfo();
-    if (refresh) {
-        $.ajax({
-            type: "POST",
-            url: "https://login.live.com/oauth20_token.srf",
-            contentType: "application/x-www-form-urlencoded",
-            data: "client_id=" + appinfo.clientId +
-				"&redirect_uri=" + appinfo.redirectUri +
-				"&client_secret=" + appinfo.clientSecret +
-				"&refresh_token=" + refresh +
-				"&grant_type=refresh_token"
-        }).done(function(data, status, xhr) {
-            var token = data["access_token"],
-				refresh = data["refresh_token"],
-				expiry = parseInt(data["expires_in"]);
-            setCookie(token, expiry, refresh);
-            animation.log(log.AUTH_REFRESH_ACCESS_END, -1);
-            if (typeof (callback) === "function")
-                callback(token);
-        }).fail(function(xhr, status, error) {
-            animation.error(log.AUTH_REFRESH_ACCESS_FAILED + log.SERVER_RETURNS + status + log.SERVER_RETURNS_END, -1);
-        });
-    } else {
-        // No refresh token, then try to sign in
-        challengeForAuth();
-    }
+    getFromStorage("refresh", function(refresh) {
+        var appinfo = getAppInfo();
+        if (refresh) {
+            $.ajax({
+                type: "POST",
+                url: "https://login.live.com/oauth20_token.srf",
+                contentType: "application/x-www-form-urlencoded",
+                data: "client_id=" +
+                    appinfo.clientId +
+                    "&redirect_uri=" +
+                    appinfo.redirectUri +
+                    "&client_secret=" +
+                    appinfo.clientSecret +
+                    "&refresh_token=" +
+                    refresh +
+                    "&grant_type=refresh_token"
+            })
+                .done(function(data, status, xhr) {
+                    var token = data["access_token"],
+                        refresh = data["refresh_token"],
+                        expiry = parseInt(data["expires_in"]);
+                    chrome.storage.local.set({
+                        token: token,
+                        refresh: refresh
+                    });
+                    if (typeof (callback) === "function")
+                        callback(token);
+                })
+                .fail(function() {
+                    alert("Unable to get `access_token`, try again.")
+                });
+        } else {
+            alert("Unable to get `refresh`, try re-signin");
+        }
+    })
+
 }
 
 function getAppInfo() {
@@ -505,21 +512,105 @@ chrome.omnibox.onInputChanged.addListener(
 // This event is fired with the user accepts the input in the omnibox.
 chrome.omnibox.onInputEntered.addListener(
   function(text) {
-      saveChanges(text);
+      if (text.startsWith("`")) {
+          // This is a command
+          processCommand(text.substr(1));
+      } else { saveChanges(text); }
   });
 
 
+/**
+ * Processes a command
+ * @param {string} cmd - a command to be processed, without $
+ */
+function processCommand(cmd) {
+    if (cmd == "e" || cmd === "enable") {
+        // Enable sign-in to get the code
+        chrome.storage.local.set({ "enable": "enable" });
+        alert("enabled");
+    } else if (cmd == "d" || cmd === "disable") {
+        // Disable automatically closing anoxic.me/journal/callback.html
+        chrome.storage.local.set({ "enable": "" });
+        alert("disabled");
+    } else if (cmd == "c" || cmd === "clear") {
+        chrome.storage.local.clear();
+        alert("cleared");
+    }
+}
+
+/**
+ * Saves the changes and upload it to onedrive folder
+ * @param {string} value - The content to be uploaded
+ */
 function saveChanges(value) {
-    // Refresh the token
-    challengeForAuth();
-    alert(getTokenFromCookie());
+    // Check if we have refresh_token
+    var initiated = false;
+    var checkInterval = setInterval(function() {
+        getFromStorage("refresh",
+            function(refresh) {
+                if (refresh) {
+                    // Stop checking refresh token
+                    clearInterval(checkInterval);
+                    // Get the token
+                    refreshToken(function(token) {
+                        // Create a new file and upload it
+                        uploadFile(value, token);
+                    })
+                } else {
+                    if (!initiated) {
+                        challengeForAuth();
+                        initiated = true;
+                        var checkIntervalCode = setInterval(function() {
+                            getFromStorage("code", function(code) {
+                                if (code) {
+                                    clearInterval(checkIntervalCode);
+                                    onAuthCallback(code);
+                                }
+                            })
+                        }, 1000);
+                    }
+                }
+            });
+    }, 1000);
+}
 
-    //////// Save it using the Chrome extension storage API.
-    //////chrome.storage.local.set({ 'value': theValue }, function() {
-    //////    // Notify that we saved.
-    //////    chrome.storage.local.get('value', function(result) {
-    //////        console.log(result["value"]);
-    //////    });;
+/**
+ * Uploads journal.archive.data to OneDrive and creates a backup
+ * @param {string} data - The data to be uploaded
+ * @param {string} token - a valid token 
+ * @param {function()} callback - what to do after everything is done
+ */
+function uploadFile(data, token, callback) {
+    var d = new Date(),
+        month = d.getMonth() + 1,
+        day = d.getDate(),
+        year = d.getFullYear() % 100,
+        hour = d.getHours(),
+        minute = d.getMinutes(),
+        second = d.getSeconds();
+    month = month < 10 ? "0" + month : month;
+    day = day < 10 ? "0" + day : day;
+    year = year < 10 ? "0" + year : year;
+    hour = hour < 10 ? "0" + hour : hour;
+    minute = minute < 10 ? "0" + minute : minute;
+    second = second < 10 ? "0" + second : second;
+    var fileName = month + day + year + "_" + hour + minute + second;
 
-    //////});
+    $.ajax({
+        type: "PUT",
+        url: "https://api.onedrive.com/v1.0/drive/root:/Apps/Journal/bulb/" + fileName + ":/content?access_token=" + token,
+        contentType: "text/plain",
+        data: data
+    })
+        .done(function(data, status, xhr) {
+            alert("DONE!");
+        })
+        .fail(function(xhr, status, error) {
+            alert("Unable to upload the file. The server returns \"" + error + "");
+        })
+    .always(function() {
+        if (typeof callback === "function") {
+             callback();
+        }
+    });
 }
