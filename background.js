@@ -258,7 +258,7 @@ function onAuthCallback(code) {
             refresh: refresh
         });
     }).fail(function() {
-        alert("Cannot get the `refresh_token`");
+        sendNotification("Error", "Cannot get the `refresh_token`");
     });
 }
 
@@ -270,7 +270,7 @@ function getAuthInfoFromUrl() {
 		  function(key, value) { return key === "" ? value : decodeURIComponent(value); });
         return authInfo;
     } else {
-        alert("failed to receive auth token");
+        sendNotification("Error", "failed to receive auth token");
     }
 }
 
@@ -427,10 +427,10 @@ function refreshToken(callback) {
                         callback(token);
                 })
                 .fail(function() {
-                    alert("Unable to get `access_token`, try again.")
+                    sendNotification("Error","Unable to get `access_token`, try again.")
                 });
         } else {
-            alert("Unable to get `refresh`, try re-signin");
+            sendNotification("Error","Unable to get `refresh`, try re-signin");
         }
     })
 
@@ -503,10 +503,10 @@ function onAuthenticated(token, authWindow) {
 // as long as the extension's keyword mode is still active.
 chrome.omnibox.onInputChanged.addListener(
   function(text, suggest) {
-      suggest([
-        { content: text + " one", description: "the first one" },
-        { content: text + " number two", description: "the second entry" }
-      ]);
+      ////suggest([
+      ////  { content: text + " one", description: "the first one" },
+      ////  { content: text + " number two", description: "the second entry" }
+      ////]);
   });
 
 // This event is fired with the user accepts the input in the omnibox.
@@ -515,7 +515,9 @@ chrome.omnibox.onInputEntered.addListener(
       if (text.startsWith("`")) {
           // This is a command
           processCommand(text.substr(1));
-      } else { saveChanges(text); }
+      } else {
+           saveChanges(text);
+      }
   });
 
 
@@ -527,14 +529,16 @@ function processCommand(cmd) {
     if (cmd == "e" || cmd === "enable") {
         // Enable sign-in to get the code
         chrome.storage.local.set({ "enable": "enable" });
-        alert("enabled");
+        sendNotification("Command", "Auto-close Microsoft Login menu enabled");
     } else if (cmd == "d" || cmd === "disable") {
         // Disable automatically closing anoxic.me/journal/callback.html
         chrome.storage.local.set({ "enable": "" });
-        alert("disabled");
+        sendNotification("Command", "Auto-close Microsoft Login menu disabled");
     } else if (cmd == "c" || cmd === "clear") {
         chrome.storage.local.clear();
-        alert("cleared");
+        sendNotification("Command", "All local data memory is cleared");
+    } else {
+        sendNotification("Command", "Unknown command");
     }
 }
 
@@ -602,15 +606,30 @@ function uploadFile(data, token, callback) {
         contentType: "text/plain",
         data: data
     })
-        .done(function(data, status, xhr) {
-            alert("DONE!");
+        .done(function() {
+            sendNotification("Bulb Pushed", data);
         })
         .fail(function(xhr, status, error) {
-            alert("Unable to upload the file. The server returns \"" + error + "");
+            alert("Error", "Unable to upload the file. The server returns \"" + error + "");
         })
     .always(function() {
         if (typeof callback === "function") {
-             callback();
+            callback();
         }
     });
+}
+
+/**
+ * Sends a notification to tell user what is going on
+ * @param {string} title - The title of the notification
+ * @param {string} body - The body of the notification
+ */
+function sendNotification(title, body) {
+    var notification = new Notification(title, {
+        icon: 'icon.png',
+        body: body,
+    });
+
+    var sound = title == "Error" ? new Audio("fail.ogg") : new Audio("success.ogg");
+    sound.play();
 }
