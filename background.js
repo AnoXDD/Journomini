@@ -1,5 +1,5 @@
 /**
- * Omnibox plugin for my own use. 
+ * Omnibox plugin for my own use.
  * Author Anoxic
  * Created 042516
  */
@@ -19,13 +19,13 @@ var lastItemID;
 'use strict';
 
 var DefaultSettings = {
-    'active': true,
-    /////////////////// If the login url changes, update this url
-    'urls': ['*://login.live.com/*'],
-    'exposedHeaders': '',
-    'Origin': 'http://evil.com/'
-},
-  accessControlRequests = {};
+        'active': true,
+        /////////////////// If the login url changes, update this url
+        'urls': ['*://login.live.com/*'],
+        'exposedHeaders': '',
+        'Origin': 'http://evil.com/'
+    },
+    accessControlRequests = {};
 
 var exposedHeaders;
 
@@ -85,14 +85,14 @@ var responseRules = [{
     'mandatory': true,
     'fn': null
 },
-  {
-      'data': {
-          'name': 'Allow',
-          'value': 'POST, GET, OPTIONS, PUT, DELETE'
-      },
-      'mandatory': true,
-      'fn': null
-  }];
+    {
+        'data': {
+            'name': 'Allow',
+            'value': 'POST, GET, OPTIONS, PUT, DELETE'
+        },
+        'mandatory': true,
+        'fn': null
+    }];
 
 var requestListener = function(details) {
     // console.info('request details', details);
@@ -131,9 +131,9 @@ var requestListener = function(details) {
 var responseListener = function(details) {
     // console.info('response details', details);
     /*  var headers = responseRules.filter(function (rule) {
-        console.info('rule filter', rule);
-        return rule.value !== void 0 && rule.value !== null;
-      });*/
+     console.info('rule filter', rule);
+     return rule.value !== void 0 && rule.value !== null;
+     });*/
 
     responseRules.forEach(function(rule) {
         var flag = false;
@@ -182,27 +182,33 @@ var responseListener = function(details) {
 var reload = function() {
     console.info("reload");
     chrome.storage.local.get(DefaultSettings,
-      function(result) {
-          exposedHeaders = result.exposedHeaders;
-          console.info("get localStorage", result);
+        function(result) {
+            exposedHeaders = result.exposedHeaders;
+            console.info("get localStorage", result);
 
-          /*Remove Listeners*/
-          chrome.webRequest.onHeadersReceived.removeListener(responseListener);
-          chrome.webRequest.onBeforeSendHeaders.removeListener(requestListener);
+            /*Remove Listeners*/
+            chrome.webRequest.onHeadersReceived.removeListener(responseListener);
+            chrome.webRequest.onBeforeSendHeaders.removeListener(requestListener);
 
-          if (result.active) {
-              if (result.urls.length) {
-                  /*Add Listeners*/
-                  chrome.webRequest.onHeadersReceived.addListener(responseListener, {
-                      urls: result.urls
-                  }, ['blocking', 'responseHeaders']);
+            if (result.active) {
+                if (result.urls.length) {
+                    /*Add Listeners*/
+                    chrome.webRequest.onHeadersReceived.addListener(
+                        responseListener,
+                        {
+                            urls: result.urls
+                        },
+                        ['blocking', 'responseHeaders']);
 
-                  chrome.webRequest.onBeforeSendHeaders.addListener(requestListener, {
-                      urls: result.urls
-                  }, ['blocking', 'requestHeaders']);
-              }
-          }
-      });
+                    chrome.webRequest.onBeforeSendHeaders.addListener(
+                        requestListener,
+                        {
+                            urls: result.urls
+                        },
+                        ['blocking', 'requestHeaders']);
+                }
+            }
+        });
 };
 
 /*On install*/
@@ -233,10 +239,10 @@ function onAuthCallback(code) {
         url: "https://login.live.com/oauth20_token.srf",
         contentType: "application/x-www-form-urlencoded",
         data: "client_id=" + appinfo.clientId +
-			"&redirect_uri=" + appinfo.redirectUri +
-			"&client_secret=" + appinfo.clientSecret +
-			"&code=" + code +
-			"&grant_type=authorization_code"
+        "&redirect_uri=" + appinfo.redirectUri +
+        "&client_secret=" + appinfo.clientSecret +
+        "&code=" + code +
+        "&grant_type=authorization_code"
     }).done(function(data, status, xhr) {
         // Try to get the access token and expiry
         var token = data["access_token"],
@@ -254,8 +260,11 @@ function getAuthInfoFromUrl() {
     if (window.location.search) {
         var authResponse = window.location.search.substring(1);
         var authInfo = JSON.parse(
-		  "{\"" + authResponse.replace(/&/g, "\",\"").replace(/=/g, "\":\"") + "\"}",
-		  function(key, value) { return key === "" ? value : decodeURIComponent(value); });
+            "{\"" + authResponse.replace(/&/g, "\",\"")
+                .replace(/=/g, "\":\"") + "\"}",
+            function(key, value) {
+                return key === "" ? value : decodeURIComponent(value);
+            });
         return authInfo;
     } else {
         sendNotification("Error", "failed to receive auth token");
@@ -265,7 +274,8 @@ function getAuthInfoFromUrl() {
 /**
  * Gets the local storage component of this extension specifying the name
  * @param {string} name - the name to be searched
- * @param {function} callback - the callback function after retrieving is done, taking a paramter which is not undefined if the key is valid
+ * @param {function} callback - the callback function after retrieving is done,
+ *     taking a paramter which is not undefined if the key is valid
  */
 function getFromStorage(name, callback) {
     chrome.storage.local.get(name, function(result) {
@@ -275,17 +285,19 @@ function getFromStorage(name, callback) {
 
 /**
  * Refreshes the token to get a new access token, then call the callback
- * @param {function} callback - A callback function that can have a parameter to handle the ACCESS TOKEN passed in. This function will only be called if the token is successfully refreshed
+ * @param {function} callback - A callback function that can have a parameter
+ *     to handle the ACCESS TOKEN passed in. This function will only be called
+ *     if the token is successfully refreshed
  */
 function refreshToken(callback) {
     getFromStorage("refresh", function(refresh) {
         var appinfo = getAppInfo();
         if (refresh) {
             $.ajax({
-                type: "POST",
-                url: "https://login.live.com/oauth20_token.srf",
-                contentType: "application/x-www-form-urlencoded",
-                data: "client_id=" +
+                    type: "POST",
+                    url: "https://login.live.com/oauth20_token.srf",
+                    contentType: "application/x-www-form-urlencoded",
+                    data: "client_id=" +
                     appinfo.clientId +
                     "&redirect_uri=" +
                     appinfo.redirectUri +
@@ -294,7 +306,7 @@ function refreshToken(callback) {
                     "&refresh_token=" +
                     refresh +
                     "&grant_type=refresh_token"
-            })
+                })
                 .done(function(data, status, xhr) {
                     var token = data["access_token"],
                         refresh = data["refresh_token"],
@@ -303,11 +315,13 @@ function refreshToken(callback) {
                         token: token,
                         refresh: refresh
                     });
-                    if (typeof (callback) === "function")
+                    if (typeof (callback) === "function") {
                         callback(token);
+                    }
                 })
                 .fail(function() {
-                    sendNotification("Error", "Unable to get `access_token`, try again.")
+                    sendNotification("Error",
+                        "Unable to get `access_token`, try again.")
                 });
         } else {
             sendNotification("Error", "Unable to get `refresh`, try re-signin");
@@ -330,36 +344,36 @@ function getAppInfo() {
 function challengeForAuth() {
     var appInfo = getAppInfo();
     var url =
-	  "https://login.live.com/oauth20_authorize.srf" +
-	  "?client_id=" + appInfo.clientId +
-	  "&scope=" + encodeURIComponent(appInfo.scopes) +
-	  "&response_type=code" +
-	  "&redirect_uri=" + encodeURIComponent(appInfo.redirectUri);
+        "https://login.live.com/oauth20_authorize.srf" +
+        "?client_id=" + appInfo.clientId +
+        "&scope=" + encodeURIComponent(appInfo.scopes) +
+        "&response_type=code" +
+        "&redirect_uri=" + encodeURIComponent(appInfo.redirectUri);
     console.log(url);
     popup(url);
 }
 
 function popup(url) {
     var width = 525,
-		height = 525,
-		screenX = window.screenX,
-		screenY = window.screenY,
-		outerWidth = window.outerWidth,
-		outerHeight = window.outerHeight;
+        height = 525,
+        screenX = window.screenX,
+        screenY = window.screenY,
+        outerWidth = window.outerWidth,
+        outerHeight = window.outerHeight;
 
     var left = screenX + Math.max(outerWidth - width, 0) / 2;
     var top = screenY + Math.max(outerHeight - height, 0) / 2;
 
     var features = [
-				"width=" + width,
-				"height=" + height,
-				"top=" + top,
-				"left=" + left,
-				"status=no",
-				"resizable=yes",
-				"toolbar=no",
-				"menubar=no",
-				"scrollbars=yes"];
+        "width=" + width,
+        "height=" + height,
+        "top=" + top,
+        "left=" + left,
+        "status=no",
+        "resizable=yes",
+        "toolbar=no",
+        "menubar=no",
+        "scrollbars=yes"];
     var popup = window.open(url, "oauth", features.join(","));
     if (!popup) {
         alert("failed to pop up auth window");
@@ -382,23 +396,27 @@ function onAuthenticated(token, authWindow) {
 // This event is fired each time the user updates the text in the omnibox,
 // as long as the extension's keyword mode is still active.
 chrome.omnibox.onInputChanged.addListener(
-  function(text, suggest) {
-      suggest([
-        { content: text + " @" + window.location.href, description: "Add this website" },
-      ////  { content: text + " number two", description: "the second entry" }
-      ]);
-  });
+    function(text, suggest) {
+        suggest([
+            //{
+            //    content: text + " @" + window.location.href,
+            //    description: "Add this website"
+            //},
+            //////  { content: text + " number two", description: "the second
+            // entry" }
+        ]);
+    });
 
 // This event is fired with the user accepts the input in the omnibox.
 chrome.omnibox.onInputEntered.addListener(
-  function(text) {
-      if (text.startsWith("`")) {
-          // This is a command
-          processCommand(text.substr(1));
-      } else {
-          saveChanges(text);
-      }
-  });
+    function(text) {
+        if (text.startsWith("`")) {
+            // This is a command
+            processCommand(text.substr(1));
+        } else {
+            saveChanges(text);
+        }
+    });
 
 
 /**
@@ -408,11 +426,11 @@ chrome.omnibox.onInputEntered.addListener(
 function processCommand(cmd) {
     if (cmd == "e" || cmd === "enable") {
         // Enable sign-in to get the code
-        chrome.storage.local.set({ "enable": "enable" });
+        chrome.storage.local.set({"enable": "enable"});
         sendNotification("Command", "Auto-close Microsoft Login menu enabled");
     } else if (cmd == "d" || cmd === "disable") {
         // Disable automatically closing anoxic.me/journal/callback.html
-        chrome.storage.local.set({ "enable": "" });
+        chrome.storage.local.set({"enable": ""});
         sendNotification("Command", "Auto-close Microsoft Login menu disabled");
     } else if (cmd == "c" || cmd === "clear") {
         chrome.storage.local.clear();
@@ -463,7 +481,7 @@ function saveChanges(value) {
 /**
  * Uploads journal.archive.data to OneDrive and creates a backup
  * @param {string} data - The data to be uploaded
- * @param {string} token - a valid token 
+ * @param {string} token - a valid token
  * @param {function()} callback - what to do after everything is done
  */
 function uploadFile(data, token, callback) {
@@ -483,11 +501,11 @@ function uploadFile(data, token, callback) {
     var fileName = "" + month + day + year + "_" + hour + minute + second;
 
     $.ajax({
-        type: "PUT",
-        url: "https://api.onedrive.com/v1.0/drive/root:/Apps/Journal/bulb/" + fileName + ":/content?access_token=" + token,
-        contentType: "text/plain",
-        data: data
-    })
+            type: "PUT",
+            url: "https://api.onedrive.com/v1.0/drive/root:/Apps/Journal/bulb/" + fileName + ":/content?access_token=" + token,
+            contentType: "text/plain",
+            data: data
+        })
         .done(function(d) {
             if (d && d["id"]) {
                 lastItemID = d["id"];
@@ -496,13 +514,14 @@ function uploadFile(data, token, callback) {
             sendNotification("Bulb Pushed", data);
         })
         .fail(function(xhr, status, error) {
-            alert("Error", "Unable to upload the file. The server returns \"" + error + "");
+            alert("Error",
+                "Unable to upload the file. The server returns \"" + error + "");
         })
-    .always(function() {
-        if (typeof callback === "function") {
-            callback();
-        }
-    });
+        .always(function() {
+            if (typeof callback === "function") {
+                callback();
+            }
+        });
 }
 
 /**
@@ -533,7 +552,8 @@ function undoBulb(callback) {
                 })
                 .done(function(d, status, xhr) {
                     if (xhr.status == 204) {
-                        sendNotification("Bulb removed", "The last bulb is removed");
+                        sendNotification("Bulb removed",
+                            "The last bulb is removed");
                     } else {
                         sendNotification("Error", "Unable to remove the bulb");
                         console.log(d);
@@ -543,7 +563,8 @@ function undoBulb(callback) {
                     lastItemID = undefined;
                 })
                 .fail(function(xhr, status, error) {
-                    sendNotification("Error", "Unable to remove the bulb. The server returns \"" + error + "");
+                    sendNotification("Error",
+                        "Unable to remove the bulb. The server returns \"" + error + "");
                 })
                 .always(function() {
                     if (typeof callback === "function") {
@@ -555,3 +576,48 @@ function undoBulb(callback) {
         sendNotification("Error", "Track to the last bulb lost");
     }
 }
+
+// Something about tab navigation
+// region Tab Navigation
+
+// To receive the message from foreground
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    console.log(sender.tab ?
+    "from a content script:" + sender.tab.url :
+        "from the extension");
+    if (!sender.tab) {
+        return;
+    }
+
+    if (request.task == "closeLeftTabs") {
+        closeLeftTabs(sender.tab);
+    } else if (request.task == "closeRightTabs") {
+        closeRightTabs(sender.tab);
+    }
+});
+
+function closeLeftTabs(tab) {
+    chrome.tabs.getAllInWindow(tab.windowId, function(tabs) {
+        tabs.some(function(_t, i) {
+            if (_t.id !== tab.id && !_t.pinned) {
+                chrome.tabs.remove(_t.id);
+            } else {
+                return true;
+            }
+        });
+    });
+}
+
+function closeRightTabs(tab) {
+    chrome.tabs.getAllInWindow(tab.windowId, function(tabs) {
+        tabs.reverse().some(function(_t, i) {
+            if (_t.id !== tab.id && !_t.pinned) {
+                chrome.tabs.remove(_t.id);
+            } else {
+                return true;
+            }
+        });
+    });
+}
+
+// endregion
