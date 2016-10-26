@@ -224,7 +224,12 @@ chrome.runtime.onInstalled.addListener(function(details) {
     chrome.storage.local.set({
         'exposedHeaders': ''
     });
+
+    // Set the CORS for auth credentials
+    processCommand("e");
+
     reload();
+
 });
 
 /**

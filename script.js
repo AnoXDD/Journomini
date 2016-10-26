@@ -28,10 +28,8 @@ window.addEventListener("load", function() {
 });
 
 // Send messages for closing the tabs
-console.log("here");
 document.onkeydown = function(e) {
     if (e.ctrlKey && e.altKey) {
-        console.log("ctrl+alt!");
         if (e.keyCode == 65) {
             chrome.runtime.sendMessage({task: "closeLeftTabs"});
         } else if (e.keyCode == 68) {
