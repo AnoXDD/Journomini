@@ -1,0 +1,19 @@
+body * {
+  font-family: Raleway !important; }
+
+#content {
+  padding-top: 200px; }
+
+.content {
+  margin-bottom: 50px;
+  flex-grow: 0;
+  -webkit-flex-grow: 0; }
+  .content .card {
+    margin: 0 auto;
+    width: 600px; }
+    .content .card .menu {
+      right: 25px; }
+    .content .card .actions {
+      padding: 20px; }
+
+/*# sourceMappingURL=options.css.map */
