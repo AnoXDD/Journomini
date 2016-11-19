@@ -76,6 +76,45 @@ window.addEventListener("load", function() {
     });
 });
 
+/**
+ * Load the dependencies
+ * @param dependencies - a list of file names of dependencies
+ * @param callback - the callback function after everything is loaded
+ */
+function loadScriptDependencies(dependencies, callback) {
+    "use strict";
+    var leftUnloaded = dependencies.length;
+
+    for (var i = 0; i !== dependencies.length; ++i) {
+        var s = document.createElement("script");
+        s.src = chrome.extension.getURL(dependencies[i]);
+        s.onload = () => {
+            if (--leftUnloaded === 0) {
+                callback();
+            }
+        };
+
+        (document.head || document.documentElement).appendChild(s);
+    }
+}
+
+/**
+ * Load CSS dependencies
+ * @param dependencies - a list of file names of css dependencies
+ */
+function loadCssDependencies(dependencies) {
+    "use strict";
+
+    for (var i = 0; i !== dependencies.length; ++i) {
+        var head = document.getElementsByTagName('head')[0];
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = dependencies[i];
+        link.media = 'all';
+        head.appendChild(link);
+    }
+}
 
 /**
  * Add your new scripts here ...
@@ -136,6 +175,26 @@ function closeTabs() {
 
 function passcodeFetcher() {
     "use strict";
-    // Create a button on the page
-    
+    // Load necessary lib files
+// Todo remove loaddependicies when this script is ready to go
+    loadScriptDependencies(["jquery.min.js", "material.min.js"], ()=> {
+        // Create a button on the page
+        var $button = $(
+            '<button style="position: fixed; bottom: 20px; right: 20px; z-index: 999;" href="#" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast ">Fetch</button>');
+        $button.appendTo("html");
+        componentHandler.upgradeDom();
+
+        $button.click(()=> {
+            var $dialog = $(
+                '<div style="position: fixed; right: 20px; bottom: 60px; z-index: 999;" id="passcode-fetcher">\
+                    <div class="mdl-card mdl-shadow--2dp">\
+                        <div id="passcode-staus" class="mdl-card__supporting-text"> Backing up...</div>\
+                        <div id="passcode-progress" class="mdl-progress mdl-js-progress mdl-progress__indeterminate" style="position: absolute; top: 0;"></div>\
+                    </div>\
+                </div>'
+            );
+        });
+    });
+
+    loadCssDependencies(["https://code.getmdl.io/1.2.1/material.light_blue-blue.min.css", "https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en"]);
 }

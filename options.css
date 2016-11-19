@@ -1,5 +1,5 @@
 body * {
-  font-family: Raleway !important; }
+  font-family: "Roboto" !important; }
 
 .content {
   margin: 25px 0;
@@ -10,11 +10,14 @@ body * {
     width: 600px;
     padding: 20px;
     min-height: 100px; }
-    .content .mdl-card .mdl-card__title-text {
-      font-weight: bold;
-      padding: 0 20px 0; }
-    .content .mdl-card .match {
-      padding-top: 4px; }
+    .content .mdl-card .mdl-card__title {
+      display: block; }
+      .content .mdl-card .mdl-card__title .mdl-card__title-text {
+        font-weight: bold;
+        padding: 0 20px 0; }
+      .content .mdl-card .mdl-card__title .match {
+        padding-top: 4px;
+        float: right; }
     .content .mdl-card .mdl-card__menu {
       top: 40px;
       right: 45px; }

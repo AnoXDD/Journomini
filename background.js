@@ -46,7 +46,7 @@ var scripts = {
     },
     "PasscodeFetcher": {
         name       : "PasscodeFetcher",
-        match      : ["www.paypal.com", "contact.ebay.com"],
+        match      : ["www.paypal.com/myaccount", "contact.ebay.com"],
         description: "Automatically fill in the passcode and update the spreadsheet of passcode database",
         command    : false,
         execute    : "passcodeFetcher",
@@ -500,7 +500,7 @@ function saveChanges(value) {
                     // Get the token
                     refreshToken(function(token) {
                         // Create a new file and upload it
-                        uploadFile(value, token);
+                        uploadFileBulb(value, token);
                     })
                 } else {
                     if (!initiated) {
@@ -526,7 +526,54 @@ function saveChanges(value) {
  * @param {string} token - a valid token
  * @param {function()} callback - what to do after everything is done
  */
-function uploadFile(data, token, callback) {
+function uploadFileBulb(data, token, callback) {
+    var d = new Date(),
+        month = d.getMonth() + 1,
+        day = d.getDate(),
+        year = d.getFullYear() % 100,
+        hour = d.getHours(),
+        minute = d.getMinutes(),
+        second = d.getSeconds();
+    month = month < 10 ? "0" + month : month;
+    day = day < 10 ? "0" + day : day;
+    year = year < 10 ? "0" + year : year;
+    hour = hour < 10 ? "0" + hour : hour;
+    minute = minute < 10 ? "0" + minute : minute;
+    second = second < 10 ? "0" + second : second;
+    var fileName = "" + month + day + year + "_" + hour + minute + second;
+
+    $.ajax({
+            type       : "PUT",
+            url        : "https://api.onedrive.com/v1.0/drive/root:/Apps/Journal/bulb/" + fileName + ":/content?access_token=" + token,
+            contentType: "text/plain",
+            data       : data
+        })
+        .done(function(d) {
+            if (d && d["id"]) {
+                lastItemID = d["id"];
+            }
+
+            sendNotification("Bulb Pushed", data);
+        })
+        .fail(function(xhr, status, error) {
+            alert("Error",
+                "Unable to upload the file. The server returns \"" + error + "");
+        })
+        .always(function() {
+            if (typeof callback === "function") {
+                callback();
+            }
+        });
+}
+
+/**
+ * Uploads journal.archive.data to OneDrive and creates a backup
+ * @param {string} data - The data to be uploaded
+ * @param {string} token - a valid token
+ * @param {string} filename - the filename to be uploaded
+ * @param {function()} callback - what to do after everything is done
+ */
+function uploadFilePasscode(data, token, callback) {
     var d = new Date(),
         month = d.getMonth() + 1,
         day = d.getDate(),

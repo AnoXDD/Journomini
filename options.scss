@@ -1,5 +1,5 @@
 body * {
-  font-family: Raleway !important;
+  font-family: "Roboto" !important;
 }
 
 #content {
@@ -16,6 +16,9 @@ body * {
     padding: 20px;
     min-height:100px;
 
+    .mdl-card__title {
+      display: block;
+
     .mdl-card__title-text {
       font-weight: bold;
       padding: 0 20px 0;
@@ -23,7 +26,8 @@ body * {
 
     .match {
       padding-top: 4px;
-    }
+      float: right;
+    }}
 
     .mdl-card__menu {
       top: 40px;

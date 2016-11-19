@@ -29,14 +29,18 @@
         "<all_urls>"
       ],
       "js": [
-        "script.js"
+        "script.js",
+        "jquery.min.js",
+        "material.min.js"
       ],
       "match_about_blank": true
     }
   ],
   "web_accessible_resources": [
     "icon.png",
-    "success.ogg"
+    "success.ogg",
+    "jquery.min.js",
+    "material.min.js"
   ],
   "options_page": "options.html",
   "manifest_version": 2
