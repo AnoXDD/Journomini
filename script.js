@@ -1,7 +1,7 @@
 // Watches for the Live Login Popup to store token and closes the window.
 window.addEventListener("load", function() {
     console.log("Loading my scripts");
-    
+
     chrome.storage.local.get("enable", function(result) {
         if (result.enable == "enable") {
             if (window.location.origin + window.location.pathname == "http://anoxic.me/journal/callback.html") {
@@ -31,7 +31,8 @@ window.addEventListener("load", function() {
         "use strict";
 
         var scripts = data.scripts,
-            address = window.location.origin + window.location.pathname;
+            address = window.location.origin + window.location.pathname,
+            matchedNames = [];
 
         for (var key in scripts) {
             if (scripts.hasOwnProperty(key)) {
@@ -41,21 +42,36 @@ window.addEventListener("load", function() {
                 // Test if the address matches
                 var regex = new RegExp(value.match.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
                 if (address.match(regex)) {
-                    // Load the script
-                    chrome.storage.local.get([name, name + "Disabled"], function(newData) {
-                        // Test if it is enabled
-                        if (!newData[name + "Disabled"]) {
-                            // Grab the script
-                            var command = newData[name] || "";
-                            eval(value.execute + "('" + command + "')");
-                        }
-                    });
+                    // Add to the queue
+                    matchedNames.push(name);
                 }
             }
         }
-    });
 
+        // Do a little processing here
+        var copy = matchedNames.slice();
+        for (var i = 0; i !== copy.length; ++i) {
+            copy[i] += "Disabled";
+        }
+        copy.push.apply(copy, matchedNames);
+        copy.push("scripts");
+
+        // Load the script
+        chrome.storage.local.get(copy, function(newData) {
+            // Iterate thru each matched name
+            for (i = 0; i !== matchedNames.length; ++i) {
+                var name = matchedNames[i];
+                // Test if it is enabled
+                if (!newData[name + "Disabled"]) {
+                    // Grab the script
+                    var command = newData[name] || "";
+                    eval(scripts[name].execute + "('" + command + "')");
+                }
+            }
+        });
+    });
 });
+
 
 /**
  * Add your new scripts here ...

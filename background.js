@@ -41,7 +41,7 @@ var scripts = {
         name       : "CloseTabs",
         match      : ".", // match every site!
         description: "Close left or right tabs",
-        command    : true,
+        command    : false  ,
         execute    : "closeTabs"
     }
 };
