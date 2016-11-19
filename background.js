@@ -18,6 +18,20 @@ var lastItemID;
  */
 'use strict';
 
+/**
+ * Load the scripts here, strictly follow the first example
+ * @type {Array}
+ */
+var scripts = {
+    "FreeFacebook": {
+        name       : "FreeFacebook", // The name of the script. Must match the key value
+        match      : "www.facebook.com", // The website to match
+        description: "To remove annoying words on Facebook", // The description
+        command    : true, // Accepting commands
+        execute    : "freeFacebook" // The function to be called in `script.js`, do not include `()`
+    },
+};
+
 var DefaultSettings = {
         'active'        : true,
         /////////////////// If the login url changes, update this url
@@ -230,6 +244,8 @@ chrome.runtime.onInstalled.addListener(function(details) {
 
     reload();
 
+    // Update the scripts library
+    chrome.storage.local.set({scripts: scripts});
 });
 
 /**

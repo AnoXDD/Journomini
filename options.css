@@ -11,6 +11,8 @@ body * {
   .content .card {
     margin: 0 auto;
     width: 600px; }
+    .content .card .title {
+      font-weight: bold; }
     .content .card .menu {
       right: 25px; }
     .content .card .actions {
