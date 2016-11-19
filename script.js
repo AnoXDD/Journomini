@@ -40,17 +40,21 @@ window.addEventListener("load", function() {
                 var name = value.name;
 
                 // Test if the address matches
-                var regex = new RegExp(value.match.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
-                if (address.match(regex)) {
-                    // Add to the queue
-                    matchedNames.push(name);
+                for (var i = 0; i !== value.match.length; ++i) {
+                    var match = value.match[i];
+                    var regex = new RegExp(match.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+                    if (address.match(regex)) {
+                        // Add to the queue
+                        matchedNames.push(name);
+                        break;
+                    }
                 }
             }
         }
 
         // Do a little processing here
         var copy = matchedNames.slice();
-        for (var i = 0; i !== copy.length; ++i) {
+        for (i = 0; i !== copy.length; ++i) {
             copy[i] += "Disabled";
         }
         copy.push.apply(copy, matchedNames);
@@ -128,4 +132,10 @@ function closeTabs() {
             }
         }
     };
+}
+
+function passcodeFetcher() {
+    "use strict";
+    // Create a button on the page
+    
 }

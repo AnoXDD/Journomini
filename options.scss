@@ -10,12 +10,13 @@ body * {
   flex-grow: 0;
   -webkit-flex-grow: 0;
 
-  .card {
+  .mdl-card {
     margin: 0 auto;
     width: 600px;
     padding: 20px;
+    min-height:100px;
 
-    .title {
+    .mdl-card__title-text {
       font-weight: bold;
       padding: 0 20px 0;
     }
@@ -24,24 +25,20 @@ body * {
       padding-top: 4px;
     }
 
-    .menu {
+    .mdl-card__menu {
       top: 40px;
       right: 45px;
     }
 
-    .support {
+    .mdl-card__supporting-text {
       padding-left: 50px;
     }
 
-    .actions {
+    .mdl-card__actions {
       padding-left: 20px;
 
-      input {
-        width: 175%;
-
-        &:focus {
-          outline: none;
-        }
+      .mdl-textfield {
+        width:175%;
       }
     }
 

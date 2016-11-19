@@ -5,27 +5,26 @@ body * {
   margin: 25px 0;
   flex-grow: 0;
   -webkit-flex-grow: 0; }
-  .content .card {
+  .content .mdl-card {
     margin: 0 auto;
     width: 600px;
-    padding: 20px; }
-    .content .card .title {
+    padding: 20px;
+    min-height: 100px; }
+    .content .mdl-card .mdl-card__title-text {
       font-weight: bold;
       padding: 0 20px 0; }
-    .content .card .match {
+    .content .mdl-card .match {
       padding-top: 4px; }
-    .content .card .menu {
+    .content .mdl-card .mdl-card__menu {
       top: 40px;
       right: 45px; }
-    .content .card .support {
+    .content .mdl-card .mdl-card__supporting-text {
       padding-left: 50px; }
-    .content .card .actions {
+    .content .mdl-card .mdl-card__actions {
       padding-left: 20px; }
-      .content .card .actions input {
+      .content .mdl-card .mdl-card__actions .mdl-textfield {
         width: 175%; }
-        .content .card .actions input:focus {
-          outline: none; }
-    .content .card .switch {
+    .content .mdl-card .switch {
       display: inline-block;
       position: relative;
       width: 2.5rem;
@@ -36,7 +35,7 @@ body * {
       transition: background 0.28s cubic-bezier(0.4, 0, 0.2, 1);
       vertical-align: middle;
       cursor: pointer; }
-      .content .card .switch::before {
+      .content .mdl-card .switch::before {
         content: '';
         position: absolute;
         top: -0.25rem;
@@ -48,14 +47,14 @@ body * {
         border-radius: 50%;
         -webkit-transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1), background 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);
         transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1), background 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
-      .content .card .switch:active::before {
+      .content .mdl-card .switch:active::before {
         box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.28), 0 0 0 1.25rem rgba(128, 128, 128, 0.1); }
-    .content .card .switch-input:checked + .switch {
+    .content .mdl-card .switch-input:checked + .switch {
       background: rgba(33, 150, 243, 0.5); }
-    .content .card .switch-input:checked + .switch::before {
+    .content .mdl-card .switch-input:checked + .switch::before {
       left: 1.25rem;
       background: #2196f3; }
-    .content .card .switch-input:checked + .switch:active::before {
+    .content .mdl-card .switch-input:checked + .switch:active::before {
       box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.28), 0 0 0 1.25rem rgba(33, 150, 243, 0.2); }
 
 /*# sourceMappingURL=options.css.map */

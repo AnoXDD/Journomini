@@ -30,19 +30,26 @@ var lastItemID;
  * @type {Array}
  */
 var scripts = {
-    "FreeFacebook": {
+    "FreeFacebook"   : {
         name       : "FreeFacebook", // The name of the script. Must match the key value
-        match      : "www.facebook.com", // The website to match
+        match      : ["www.facebook.com"], // The website(s) to match
         description: "To remove annoying words on Facebook", // The description
         command    : true, // Accepting commands
         execute    : "freeFacebook" // The function to be called in `script.js`, do not include `()`
     },
-    "CloseTabs"   : {
+    "CloseTabs"      : {
         name       : "CloseTabs",
-        match      : ".", // match every site!
+        match      : ["."], // match every site!
         description: "Close left or right tabs",
-        command    : false  ,
+        command    : false,
         execute    : "closeTabs"
+    },
+    "PasscodeFetcher": {
+        name       : "PasscodeFetcher",
+        match      : ["www.paypal.com", "contact.ebay.com"],
+        description: "Automatically fill in the passcode and update the spreadsheet of passcode database",
+        command    : false,
+        execute    : "passcodeFetcher",
     }
 };
 
