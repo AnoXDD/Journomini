@@ -25,7 +25,7 @@ var lastItemID;
  * 1) add appropriate info below
  * 2) in script.js, add a function to execute.
  *    If `command` is set to true, don't forget to have a `command` param
- * 
+ *
  * *****
  * @type {Array}
  */
@@ -37,6 +37,13 @@ var scripts = {
         command    : true, // Accepting commands
         execute    : "freeFacebook" // The function to be called in `script.js`, do not include `()`
     },
+    "CloseTabs"   : {
+        name       : "CloseTabs",
+        match      : ".", // match every site!
+        description: "Close left or right tabs",
+        command    : true,
+        execute    : "closeTabs"
+    }
 };
 
 var DefaultSettings = {

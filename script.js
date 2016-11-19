@@ -1,6 +1,7 @@
 // Watches for the Live Login Popup to store token and closes the window.
 window.addEventListener("load", function() {
-
+    console.log("Loading my scripts");
+    
     chrome.storage.local.get("enable", function(result) {
         if (result.enable == "enable") {
             if (window.location.origin + window.location.pathname == "http://anoxic.me/journal/callback.html") {
@@ -101,12 +102,14 @@ function freeFacebook(command) {
 }
 
 // Send messages for closing the tabs
-document.onkeydown = function(e) {
-    if (e.ctrlKey && e.altKey) {
-        if (e.keyCode == 65) {
-            chrome.runtime.sendMessage({task: "closeLeftTabs"});
-        } else if (e.keyCode == 68) {
-            chrome.runtime.sendMessage({task: "closeRightTabs"});
+function closeTabs() {
+    document.onkeydown = function(e) {
+        if (e.ctrlKey && e.altKey) {
+            if (e.keyCode == 65) {
+                chrome.runtime.sendMessage({task: "closeLeftTabs"});
+            } else if (e.keyCode == 68) {
+                chrome.runtime.sendMessage({task: "closeRightTabs"});
+            }
         }
-    }
-};
+    };
+}
