@@ -13,17 +13,36 @@ body * {
   .card {
     margin: 0 auto;
     width: 600px;
+    padding: 20px;
 
     .title {
       font-weight: bold;
+      padding: 0 20px 0;
+    }
+
+    .match {
+      padding-top: 4px;
     }
 
     .menu {
-      right: 25px;
+      top: 40px;
+      right: 45px;
+    }
+
+    .support {
+      padding-left: 50px;
     }
 
     .actions {
-      padding: 20px;
+      padding-left: 20px;
+
+      input {
+        width: 175%;
+
+        &:focus {
+          outline: none;
+        }
+      }
     }
 
     .switch {

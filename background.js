@@ -20,6 +20,13 @@ var lastItemID;
 
 /**
  * Load the scripts here, strictly follow the first example
+ * *****
+ * What to do if you want to add more scripts to be loaded:
+ * 1) add appropriate info below
+ * 2) in script.js, add a function to execute.
+ *    If `command` is set to true, don't forget to have a `command` param
+ * 
+ * *****
  * @type {Array}
  */
 var scripts = {

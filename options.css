@@ -7,13 +7,24 @@ body * {
   -webkit-flex-grow: 0; }
   .content .card {
     margin: 0 auto;
-    width: 600px; }
+    width: 600px;
+    padding: 20px; }
     .content .card .title {
-      font-weight: bold; }
+      font-weight: bold;
+      padding: 0 20px 0; }
+    .content .card .match {
+      padding-top: 4px; }
     .content .card .menu {
-      right: 25px; }
+      top: 40px;
+      right: 45px; }
+    .content .card .support {
+      padding-left: 50px; }
     .content .card .actions {
-      padding: 20px; }
+      padding-left: 20px; }
+      .content .card .actions input {
+        width: 175%; }
+        .content .card .actions input:focus {
+          outline: none; }
     .content .card .switch {
       display: inline-block;
       position: relative;
