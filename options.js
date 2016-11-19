@@ -21,10 +21,8 @@ function loadDashboard() {
                             </div> \
                             <div class="mdl-card__supporting-text">' + value.description + '</div> \
                             <div class="menu mdl-card__menu"> \
-                            <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-' + key + '"> \
-                                <input type="checkbox" id="switch-' + key + '" class="mdl-switch__input" checked> \
-                                <span class="mdl-switch__label"></span> \
-                            </label> \
+                                <input type="checkbox" id="switch-' + key + '" class="switch-input" hidden="hidden" checked> \
+                                <label class="switch" for="switch-' + key + '"></label> \
                             </div> \
                             <div class="actions mdl-card__actions mdl-card--border"> \
                                 <div class="mdl-textfield mdl-js-textfield"> \
@@ -35,18 +33,29 @@ function loadDashboard() {
                         </div> \
                     </div>');
 
+                // Update the command
                 $newElem.find(".mdl-textfield__input").blur(function() {
-                    var obj = {},
-                        val = $(this).val();
-                    obj[name] = val;
+                    var obj = {};
+                    obj[name] = $(this).val();
                     chrome.storage.local.set(obj);
+                });
+
+                $newElem.find(".switch-input").change(function() {
+                    if (this.checked) {
+                        chrome.storage.local.remove(name + "Disabled");
+                    } else {
+                        var obj = {};
+                        obj[name + "Disabled"] = true;
+                        chrome.storage.local.set(obj);
+                    }
                 });
 
                 $("#content").append($newElem);
 
                 // Get the storage data
-                chrome.storage.local.get(name, function(data) {
+                chrome.storage.local.get([name, name + "Disabled"], function(data) {
                     $newElem.find(".mdl-textfield__input").val(data[name]);
+                    $newElem.find(".switch-input").prop("checked", !data[name + "Disabled"]);
                 });
             }
         }

@@ -41,12 +41,12 @@ window.addEventListener("load", function() {
                 var regex = new RegExp(value.match.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
                 if (address.match(regex)) {
                     // Load the script
-                    chrome.storage.local.get([name, name + "Enabled"], function(newData) {
+                    chrome.storage.local.get([name, name + "Disabled"], function(newData) {
                         // Test if it is enabled
-                        if (newData[name + "Enabled"]) {
+                        if (!newData[name + "Disabled"]) {
                             // Grab the script
                             var command = newData[name] || "";
-                            eval(value.execute + "(" + command + ")");
+                            eval(value.execute + "('" + command + "')");
                         }
                     });
                 }
@@ -55,6 +55,11 @@ window.addEventListener("load", function() {
     });
 
 });
+
+/**
+ * Add your new scripts here ...
+ */
+
 
 function freeFacebook(command) {
     function __plugin_removeAnnoyingStuffs() {
@@ -94,7 +99,6 @@ function freeFacebook(command) {
 
     __plugin_ready(__plugin_removeAnnoyingStuffs);
 }
-
 
 // Send messages for closing the tabs
 document.onkeydown = function(e) {

@@ -3,11 +3,10 @@ body * {
 }
 
 #content {
-  padding-top: 200px;
 }
 
 .content {
-  margin-bottom: 50px;
+  margin: 25px 0;
   flex-grow: 0;
   -webkit-flex-grow: 0;
 
@@ -16,7 +15,7 @@ body * {
     width: 600px;
 
     .title {
-      font-weight:bold;
+      font-weight: bold;
     }
 
     .menu {
@@ -25,6 +24,47 @@ body * {
 
     .actions {
       padding: 20px;
+    }
+
+    .switch {
+      display: inline-block;
+      position: relative;
+      width: 2.5rem;
+      height: 1rem;
+      border-radius: 0.5rem;
+      background: rgba(0, 0, 0, 0.26);
+      -webkit-transition: background 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: background 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      vertical-align: middle;
+      cursor: pointer;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: -0.25rem;
+        left: -0.25rem;
+        width: 1.5rem;
+        height: 1.5rem;
+        background: #fafafa;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.28);
+        border-radius: 50%;
+        -webkit-transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1), background 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1), background 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      &:active::before {
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.28), 0 0 0 1.25rem rgba(128, 128, 128, 0.1);
+      }
+    }
+
+    .switch-input:checked + .switch {
+      background: rgba(33, 150, 243, 0.5);
+    }
+    .switch-input:checked + .switch::before {
+      left: 1.25rem;
+      background: rgb(33, 150, 243);
+    }
+    .switch-input:checked + .switch:active::before {
+      box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.28), 0 0 0 1.25rem rgba(33, 150, 243, 0.2);
     }
   }
 }

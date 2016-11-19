@@ -31,8 +31,6 @@
       "js": [
         "script.js"
       ],
-      "run_at": "document_end",
-      "all_frames": true,
       "match_about_blank": true
     }
   ],
