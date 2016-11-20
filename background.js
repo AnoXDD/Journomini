@@ -557,7 +557,7 @@ function uploadFileBulb(data, token, callback) {
         })
         .fail(function(xhr, status, error) {
             alert("Error",
-                "Unable to upload the file. The server returns \"" + error + "");
+                "Unable to upload the file. The server returns \"" + error + "\"");
         })
         .always(function() {
             if (typeof callback === "function") {
@@ -566,52 +566,6 @@ function uploadFileBulb(data, token, callback) {
         });
 }
 
-/**
- * Uploads journal.archive.data to OneDrive and creates a backup
- * @param {string} data - The data to be uploaded
- * @param {string} token - a valid token
- * @param {string} filename - the filename to be uploaded
- * @param {function()} callback - what to do after everything is done
- */
-function uploadFilePasscode(data, token, callback) {
-    var d = new Date(),
-        month = d.getMonth() + 1,
-        day = d.getDate(),
-        year = d.getFullYear() % 100,
-        hour = d.getHours(),
-        minute = d.getMinutes(),
-        second = d.getSeconds();
-    month = month < 10 ? "0" + month : month;
-    day = day < 10 ? "0" + day : day;
-    year = year < 10 ? "0" + year : year;
-    hour = hour < 10 ? "0" + hour : hour;
-    minute = minute < 10 ? "0" + minute : minute;
-    second = second < 10 ? "0" + second : second;
-    var fileName = "" + month + day + year + "_" + hour + minute + second;
-
-    $.ajax({
-            type       : "PUT",
-            url        : "https://api.onedrive.com/v1.0/drive/root:/Apps/Journal/bulb/" + fileName + ":/content?access_token=" + token,
-            contentType: "text/plain",
-            data       : data
-        })
-        .done(function(d) {
-            if (d && d["id"]) {
-                lastItemID = d["id"];
-            }
-
-            sendNotification("Bulb Pushed", data);
-        })
-        .fail(function(xhr, status, error) {
-            alert("Error",
-                "Unable to upload the file. The server returns \"" + error + "");
-        })
-        .always(function() {
-            if (typeof callback === "function") {
-                callback();
-            }
-        });
-}
 
 /**
  * Sends a notification to tell user what is going on
@@ -666,6 +620,7 @@ function undoBulb(callback) {
     }
 }
 
+
 // Something about tab navigation
 // region Tab Navigation
 
@@ -706,5 +661,178 @@ function closeRightTabs(tab) {
         });
     });
 }
+
+// endregion
+
+// Something about fetching passcode
+// region PasscodeFetch
+
+// region PasscodeFetchUtilFunctions
+/**
+ * Uploads journal.archive.data to OneDrive and creates a backup
+ * @param {string} data - The data to be uploaded
+ * @param {string} token - a valid token
+ * @param {function()} success - what to do if upload is a success
+ * @param {function()} callback - what to do after everything is done
+ */
+function uploadFilePasscode(data, token, success, callback) {
+    $.ajax({
+            type       : "PUT",
+            url        : "https://api.onedrive.com/v1.0/drive/root:/Documents/Ingress/eBay/Passcode/passcode.csv:/content?access_token=" + token,
+            contentType: "text/plain",
+            data       : data
+        })
+        .done(function() {
+            if (typeof success === "function") {
+                success();
+            }
+        })
+        .fail(function(xhr, status, error) {
+            alert("Error",
+                "Unable to upload the passcode. The server returns \"" + error + "\"");
+        })
+        .always(function() {
+            if (typeof callback === "function") {
+                callback();
+            }
+        });
+}
+
+
+/**
+ * Backs up the passcode file
+ * @param token - a valid token
+ * @param {function} success - what to do if copy is a success, with the data,
+ *                             e.g. function(data) {console.log(data)}
+ * @param {function} fail - what to do if copy is a success
+ * @param {function} always - what to do after everything is done
+ */
+function getPasscode(token, success, fail, always) {
+    $.ajax({
+        type: "GET",
+        url : "https://api.onedrive.com/v1.0/drive/root:/Documents/Ingress/eBay/Passcode/passcode.csv:/content?access_token=" + token,
+    }).done((data)=> {
+        if (typeof success === "function") {
+            success(data);
+        }
+    }).fail((xhr, status, error) => {
+        if (typeof fail === "function") {
+            fail();
+        }
+    }).always(() => {
+        if (typeof always === "function") {
+            always();
+        }
+    });
+}
+
+/**
+ * Backs up the passcode file
+ * @param token - a valid token
+ * @param {function} success - what to do if copy is a success
+ * @param {function} fail - what to do if copy is a success
+ * @param {function} always - what to do after everything is done
+ */
+function backupPasscode(token, success, fail, always) {
+    var d = new Date(),
+        month = d.getMonth() + 1,
+        day = d.getDate(),
+        year = d.getFullYear() % 100,
+        hour = d.getHours(),
+        minute = d.getMinutes(),
+        second = d.getSeconds();
+    month = month < 10 ? "0" + month : month;
+    day = day < 10 ? "0" + day : day;
+    year = year < 10 ? "0" + year : year;
+    hour = hour < 10 ? "0" + hour : hour;
+    minute = minute < 10 ? "0" + minute : minute;
+    second = second < 10 ? "0" + second : second;
+    var stringifiedData = "_" + month + day + year + "_" + hour + minute + second,
+        filePath = "/Documents/Ingress/eBay/Passcode/passcode.csv";
+
+    $.ajax({
+        type       : "POST",
+        url        : "https://api.onedrive.com/v1.0/drive/root:" + filePath + ":/action.copy?access_token=" + token,
+        contentType: "application/json",
+        data       : JSON.stringify({
+            name: "passcode" + stringifiedData + ".csv"
+        }),
+        headers    : {
+            Prefer: "respond-async"
+        }
+    }).done(function() {
+        if (typeof success === "function") {
+            success();
+        }
+    }).fail((xhr, status, error) => {
+        if (typeof fail === "function") {
+            fail();
+        }
+    }).always(() => {
+        if (typeof always === "function") {
+            always();
+        }
+    });
+}
+
+// endregion
+
+/**
+ * Ask to fetch the data.
+ * Request: { task : passcodeFetch/passcodeSave, data: {{dataToBeUploaded}} }
+ * Response: { fail: true/false, data: rawFetchedPasscode/undefined }
+ */
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.task === "passcodeFetch") {
+        refreshToken((token) => {
+
+            backupPasscode(token, () => {
+
+                // Success, get the passcode
+                getPasscode(token, (data) => {
+                    sendResponse({
+                        fail: false,
+                        data: data
+                    });
+                }, () => {
+                    // Fail
+                    sendResponse({
+                        fail: true,
+                        data: "Unable to fetch the passcode"
+                    });
+                });
+
+            }, () => {
+                // Fail
+                sendResponse({
+                    fail: true,
+                    data: "Unable to backup the passcode"
+                });
+            });
+
+        })
+    } else if (request.task === "passcodeSave") {
+
+        refreshToken((token) => {
+            uploadFilePasscode(request.data, token, ()=> {
+
+                // Success
+                sendResponse({
+                    fail: false
+                });
+
+            }, () => {
+
+                // Fail
+                sendResponse({
+                    fail: true,
+                    data: "Unable to update the passcode sheet. Please try again"
+                });
+                
+            });
+        })
+
+    }
+});
 
 // endregion
