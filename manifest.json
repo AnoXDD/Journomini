@@ -33,6 +33,7 @@
         "jquery.min.js",
         "material.min.js"
       ],
+      "run_at": "document_end",
       "match_about_blank": true
     }
   ],
@@ -40,7 +41,9 @@
     "icon.png",
     "success.ogg",
     "jquery.min.js",
-    "material.min.js"
+    "material.min.js",
+    "material_icons.css",
+    "material_icons.woff2"
   ],
   "options_page": "options.html",
   "manifest_version": 2

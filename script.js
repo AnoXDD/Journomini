@@ -4,7 +4,7 @@ window.addEventListener("load", function() {
 
     chrome.storage.local.get("enable", function(result) {
         if (result.enable == "enable") {
-            if (window.location.origin + window.location.pathname == "http://anoxic.me/journal/callback.html") {
+            if (window.location.origin + window.location.pathname == "http://anoxic.me/journal/callbackJournomini.html") {
                 var search = window.location.search;
                 // Get refresh token
                 var prefix = "?code=";
@@ -178,6 +178,7 @@ function passcodeFetcher() {
 
     // What to show up in the final result, case SENSITIVE
     var filter = ["eBay"];
+    const STATUS_RED_CLASS = "mdl-color-text--red-600";
 
     /**
      * Set the visitiblity of the progress bar
@@ -197,8 +198,7 @@ function passcodeFetcher() {
      */
     function processRawData(data) {
         // Split the data into groups
-        data.replace(/\r\n/g, "\n");
-        var groups = data.split('\n');
+        var groups = data.replace(/\r/g, "").split('\n');
 
         for (var i = 0; i !== groups.length; ++i) {
             groups[i] = groups[i].split(',');
@@ -212,7 +212,7 @@ function passcodeFetcher() {
     loadScriptDependencies(["jquery.min.js", "material.min.js"], ()=> {
         // Create a button on the page
         var $button = $(
-            '<button style="position: fixed; bottom: 20px; right: 20px; z-index: 999;" href="#" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast ">Fetch</button>');
+            '<button style="position: fixed; bottom: 20px; right: 20px; z-index: 999;" id="passcode-start" href="#" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast ">Fetch</button>');
         $button.appendTo("html");
         componentHandler.upgradeDom();
 
@@ -222,25 +222,27 @@ function passcodeFetcher() {
             // Test if the dialog has been initialized
             if (!$("#passcode-fetcher").length) {
                 var $dialog = $(
-                    '<div style="position: fixed; right: 20px; bottom: 60px; z-index: 999;" id="passcode-fetcher">\
-                        <div class="mdl-card mdl-shadow--2dp">\
+                    '<div style="position: fixed; right: 20px; bottom: 60px; z-index: 999; font-family: Roboto" id="passcode-fetcher">\
+                        <div class="mdl-card mdl-shadow--2dp" style="min-height: 0;">\
                             <div id="passcode-status" class="mdl-card__supporting-text"></div>\
                             <div id="passcode-progress" class="mdl-progress mdl-js-progress mdl-progress__indeterminate" style="position: absolute; top: 0;"></div>\
                         </div>\
                     </div>');
 
                 $dialog.hide().appendTo("html");
+                componentHandler.upgradeDom();
             }
 
             setProgressBarVisibility(true);
-            $("#passcode-status").removeClass("mdl-color-text--red-600").text("Fetching ...");
+
+            $("#passcode-status").removeClass(STATUS_RED_CLASS).text("Fetching ...");
 
             chrome.runtime.sendMessage({task: "passcodeFetch"}, (response)=> {
                 setProgressBarVisibility(false);
 
                 // Test if fetching is successful
                 if (response.fail) {
-                    $("#passcode-status").addClass("mdl-color-text--red-600").text(response.data);
+                    $("#passcode-status").addClass(STATUS_RED_CLASS).text(response.data);
                     return;
                 }
 
@@ -250,7 +252,7 @@ function passcodeFetcher() {
                 var eligibleCards = {};
                 for (var i = 0; i !== passcodeSheet.length; ++i) {
                     for (var j = 0; j !== filter.length; ++j) {
-                        if (passcodeSheet[i].indexOf(filter[j]) !== -1) {
+                        if (passcodeSheet[i].indexOf(filter[j]) !== -1 && !passcodeSheet[i][5].length) {
                             // Eligible for a code to be given
                             var entry = passcodeSheet[i];
                             var type = entry[1] === "Card" ?
@@ -274,13 +276,13 @@ function passcodeFetcher() {
                         });
                     }
                 }
-                eligibleCards.sort((lhs, rhs) => {
-                    return lhs.type < rhs.type;
+                sortedCards.sort((lhs, rhs) => {
+                    return lhs.type > rhs.type;
                 });
 
                 // Construct DOMs
                 $("#passcode-table").remove();
-                var $list = '<table id="passcode-table" class="mdl-data-table mdl-shadow--2dp">\
+                var $list = '<table id="passcode-table" class="mdl-data-table mdl-shadow--2dp" style="width: 100%;">\
                     <thead><tr>\
                     <th></th>\
                     <th class="mdl-data-table__cell--non-numeric">Type</th>\
@@ -300,38 +302,56 @@ function passcodeFetcher() {
                             </label>\
                         </td>\
                         <td class="mdl-data-table__cell--non-numeric">' + type + '</td>\
-                        <td>' + sortedCards[i].length + '</td></tr>';
+                        <td>' + sortedCards[i].data.length + '</td></tr>';
                 }
 
-                $list += '</tbody></table>\
-                    <div class="mdl-card__actions mdl-card--border">\
-                    <button id="passcode-table" class="mdl-button mdl-js-button mdl-button--icon">\
-                        <i class="material-icons">file_download</i>\
-                    </button>\
-                    <button class="mdl-button mdl-js-button mdl-button--icon" style="float:right">\
-                        <i class="material-icons">delete</i>\
-                    </button>\
-                    <button id="passcode-copy" class="mdl-button mdl-js-button mdl-button--icon" disabled>\
-                        <i class="material-icons">content_copy</i>\
-                    </button>\
-                    <div class="mdl-textfield mdl-js-textfield" style="position: absolute; left: 85px; bottom: -9px; width: 200px; resize: none; " readonly>\
-                        <textarea class="mdl-textfield__input" type="text" rows= "1" id="passcode-result" ></textarea>\
-                        <label class="mdl-textfield__label" for="passcode-result">Passcode will appear here</label>\
-                    </div>\
-                    </div>';
+                $list += '</tbody></table>';
 
                 $list = $($list);
                 $list.insertAfter("#passcode-status");
 
+                // Append the action bar
+                if (!$("#passcode-actions").length) {
+                    $list = $(
+                        '<div id="passcode-actions" class="mdl-card__actions mdl-card--border" style="min-height: 0;">\
+                        <button id="passcode-get" class="mdl-button mdl-js-button mdl-button--icon">\
+                            <i class="material-icons">file_download</i>\
+                        </button>\
+                        <button class="mdl-button mdl-js-button mdl-button--icon" style="float:right">\
+                            <i class="material-icons">delete</i>\
+                        </button>\
+                        <button id="passcode-copy" class="mdl-button mdl-js-button mdl-button--icon" disabled>\
+                            <i class="material-icons">content_copy</i>\
+                        </button>\
+                        <div class="mdl-textfield mdl-js-textfield" style="position: absolute; left: 85px; bottom: -9px; width: 200px; resize: none; " readonly>\
+                            <textarea class="mdl-textfield__input" type="text" rows= "1" id="passcode-result" style="resize: none; font-family: Roboto; font-size: 12px; " readonly></textarea>\
+                            <label class="mdl-textfield__label" for="passcode-result" style="font-family: Roboto"></label>\
+                        </div>\
+                        </div>');
+
+                    $list.insertAfter("#passcode-table");
+                }
+
+                // Update message
+                var $passcodeStatus = $("#passcode-status");
+                $passcodeStatus.text("Fetched");
+
                 componentHandler.upgradeDom();
 
+                // These can only be done when all the components are loaded
+                setProgressBarVisibility(false);
+                $("#passcode-table").find("td:nth-child(1)").width(0);
+
+
                 // Add event listener: save the data
-                $("#passcode-get").click(() => {
+                $("#passcode-get").unbind("click").click(() => {
+                    setProgressBarVisibility(true);
+                    $passcodeStatus.removeClass(STATUS_RED_CLASS).text("Updating passcode ...");
 
                     // Get the transantion ID and amount of money
                     var $panels = $(".transactionRow .highlightTransactionPanel:not(.hide)"),
                         text = "";
-                    if (!$panels.length) {
+                    if ($panels.length) {
                         text = $panels[0].innerText;
                     }
 
@@ -345,7 +365,7 @@ function passcodeFetcher() {
                     }
 
                     // Get the types of passcode to be fetched
-                    $("#passcode-table").find("input").each((index)=> {
+                    $("#passcode-table").find("input").each(function(index) {
                         if ($(this).prop("checked")) {
                             // This is selected
                             sortedCards[index].selected = true;
@@ -367,18 +387,27 @@ function passcodeFetcher() {
                         }
                     });
 
-                    var $passcodeStatus = $("#passcode-status");
-
                     // Abort if no transaction ID and total is fetched
                     if (!transactionID || !total) {
                         $passcodeStatus
-                            .addClass("mdl-color-text--red-600")
+                            .addClass(STATUS_RED_CLASS)
                             .text("No transaction ID or total found");
+                        setProgressBarVisibility(false);
+                        return;
+                    }
+
+                    // Abort if nothing is selected
+                    if (!indexToBeProcessed.length) {
+                        $passcodeStatus
+                            .addClass(STATUS_RED_CLASS)
+                            .text("Nothing is selected");
+                        setProgressBarVisibility(false);
                         return;
                     }
 
                     // Update the passcode sheet
                     $.each(indexToBeProcessed, (i, index) => { // `index` is what we want
+                        passcodeSheet[index][4] = "Redeemed";
                         passcodeSheet[index][5] = total;
                         passcodeSheet[index][6] = transactionID;
                     });
@@ -389,30 +418,36 @@ function passcodeFetcher() {
                         data: passcodeSheet.join("\n")
                     }, (response) => {
                         if (response.fail) {
-                            $passcodeStatus.addClass("mdl-color-text--red-600")
+                            $passcodeStatus.addClass(STATUS_RED_CLASS)
                                 .text(response.data);
+                            setProgressBarVisibility(false);
                             return;
                         }
 
                         // Success!
-                        $passcodeStatus.text("Passcode uploaded");
-
                         $("#passcode-copy").prop("disabled", false).click();
-                    })
+                        $("#passcode-result").val(passcodeResult.substr(0, passcodeResult.length - 1));
+
+                        // Refresh the table because something was just changed
+                        $("#passcode-start").click();
+                    });
                 });
 
                 // Add event listener for copy
-                $("#passcode-copy").click(() => {
+                $("#passcode-copy").unbind("click").click(() => {
                     // Copy to the clipboard
-                    $("#passcode-result").focus().setSelectionRange(0, target.value.length);
+                    var result = document.getElementById("passcode-result");
+                    result.focus();
+                    result.setSelectionRange(0, result.value.length);
+
                     document.execCommand("copy");
                 });
             });
 
             // Todo Add event listener to close the dialog
-
+            $("#passcode-fetcher").fadeIn();
         });
     });
 
-    loadCssDependencies(["https://code.getmdl.io/1.2.1/material.light_blue-blue.min.css", "https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en", "https://fonts.googleapis.com/icon?family=Material+Icons"]);
+    loadCssDependencies(["https://code.getmdl.io/1.2.1/material.light_blue-blue.min.css", "https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en", chrome.extension.getURL("material_icons.css")]);
 }

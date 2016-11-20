@@ -374,10 +374,10 @@ function refreshToken(callback) {
 
 function getAppInfo() {
     var appInfo = {
-        clientId    : "000000004C14D0D9",
-        clientSecret: "ywGrXJMufpTJxa5AsQCd3ovdMasZSnxf",
+        clientId    : "00000000481C075F",
+        clientSecret: "moEfmzqqPiDCWLLxJiBGOKo",
         scopes      : "wl.signin wl.offline_access onedrive.readwrite onedrive.appfolder",
-        redirectUri : "https://anoxdd.github.io/journal/callback.html"
+        redirectUri : "https://anoxdd.github.io/journal/callbackJournomini.html"
     };
 
     return appInfo;
@@ -678,7 +678,7 @@ function closeRightTabs(tab) {
 function uploadFilePasscode(data, token, success, callback) {
     $.ajax({
             type       : "PUT",
-            url        : "https://api.onedrive.com/v1.0/drive/root:/Documents/Ingress/eBay/Passcode/passcode.csv:/content?access_token=" + token,
+            url        : "https://api.onedrive.com/v1.0/drive/root:/Documents/Ingress/eBay/Passcode/passcode.csv:/content?@name.conflictBehavior=replace&access_token=" + token,
             contentType: "text/plain",
             data       : data
         })
@@ -717,7 +717,7 @@ function getPasscode(token, success, fail, always) {
         }
     }).fail((xhr, status, error) => {
         if (typeof fail === "function") {
-            fail();
+            fail(error);
         }
     }).always(() => {
         if (typeof always === "function") {
@@ -766,7 +766,7 @@ function backupPasscode(token, success, fail, always) {
         }
     }).fail((xhr, status, error) => {
         if (typeof fail === "function") {
-            fail();
+            fail(error);
         }
     }).always(() => {
         if (typeof always === "function") {
@@ -794,19 +794,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                         fail: false,
                         data: data
                     });
-                }, () => {
+                }, (error) => {
                     // Fail
                     sendResponse({
                         fail: true,
-                        data: "Unable to fetch the passcode"
+                        data: "Unable to fetch the passcode: " + error
                     });
                 });
 
-            }, () => {
+            }, (error) => {
                 // Fail
                 sendResponse({
                     fail: true,
-                    data: "Unable to backup the passcode"
+                    data: "Unable to backup the passcode: " + error
                 });
             });
 
@@ -833,6 +833,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         })
 
     }
+
+    return true;
 });
 
 // endregion
