@@ -222,9 +222,9 @@ function passcodeFetcher() {
             // Test if the dialog has been initialized
             if (!$("#passcode-fetcher").length) {
                 var $dialog = $(
-                    '<div style="position: fixed; right: 20px; bottom: 60px; z-index: 999; font-family: Roboto" id="passcode-fetcher">\
+                    '<div style="position: fixed; right: 20px; bottom: 20px; z-index: 999; font-family: Roboto" id="passcode-fetcher">\
                         <div class="mdl-card mdl-shadow--2dp" style="min-height: 0;">\
-                            <div id="passcode-status" class="mdl-card__supporting-text"></div>\
+                            <div id="passcode-status" class="mdl-card__supporting-text" style="text-align: center; align-self: center;"></div>\
                             <div id="passcode-progress" class="mdl-progress mdl-js-progress mdl-progress__indeterminate" style="position: absolute; top: 0;"></div>\
                         </div>\
                     </div>');
@@ -257,7 +257,7 @@ function passcodeFetcher() {
                             var entry = passcodeSheet[i];
                             var type = entry[1] === "Card" ?
                             entry[0] + " card" :
-                                (entry[0] === "Loadout" ? "_Loadout (" + entry[1] + ")" : entry[1]);
+                                (entry[0] === "Loadout" ? " Loadout (" + entry[1] + ")" : entry[1]);
 
                             eligibleCards[type] = eligibleCards[type] || [];
 
@@ -317,13 +317,13 @@ function passcodeFetcher() {
                         <button id="passcode-get" class="mdl-button mdl-js-button mdl-button--icon">\
                             <i class="material-icons">file_download</i>\
                         </button>\
-                        <button class="mdl-button mdl-js-button mdl-button--icon" style="float:right">\
+                        <button class="mdl-button mdl-js-button mdl-button--icon">\
                             <i class="material-icons">delete</i>\
                         </button>\
                         <button id="passcode-copy" class="mdl-button mdl-js-button mdl-button--icon" disabled>\
                             <i class="material-icons">content_copy</i>\
                         </button>\
-                        <div class="mdl-textfield mdl-js-textfield" style="position: absolute; left: 85px; bottom: -9px; width: 200px; resize: none; " readonly>\
+                        <div class="mdl-textfield mdl-js-textfield" style="position: absolute; right: 3px; bottom: -9px; width: 200px; resize: none; " readonly>\
                             <textarea class="mdl-textfield__input" type="text" rows= "1" id="passcode-result" style="resize: none; font-family: Roboto; font-size: 12px; " readonly></textarea>\
                             <label class="mdl-textfield__label" for="passcode-result" style="font-family: Roboto"></label>\
                         </div>\
@@ -425,8 +425,8 @@ function passcodeFetcher() {
                         }
 
                         // Success!
-                        $("#passcode-copy").prop("disabled", false).click();
                         $("#passcode-result").val(passcodeResult.substr(0, passcodeResult.length - 1));
+                        $("#passcode-copy").prop("disabled", false);
 
                         // Refresh the table because something was just changed
                         $("#passcode-start").click();
@@ -449,5 +449,6 @@ function passcodeFetcher() {
         });
     });
 
-    loadCssDependencies(["https://code.getmdl.io/1.2.1/material.light_blue-blue.min.css", "https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en", chrome.extension.getURL("material_icons.css")]);
+    loadCssDependencies(["https://code.getmdl.io/1.2.1/material.light_blue-blue.min.css", chrome.extension.getURL(
+        "material_icons.css")]);
 }
