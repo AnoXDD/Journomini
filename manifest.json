@@ -31,8 +31,7 @@
       "js": [
         "script.js",
         "jquery.min.js",
-        "material.min.js",
-        "clipboard.min.js"
+        "material.min.js"
       ],
       "run_at": "document_end",
       "match_about_blank": true
@@ -44,8 +43,7 @@
     "jquery.min.js",
     "material.min.js",
     "material_icons.css",
-    "material_icons.woff2",
-    "clipboard.min.js"
+    "material_icons.woff2"
   ],
   "options_page": "options.html",
   "manifest_version": 2

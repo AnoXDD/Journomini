@@ -446,15 +446,12 @@ function passcodeFetcher() {
                         // Add to history
                         $("#passcode-history").parent().fadeIn();
                         $("#passcode-history").find("tbody").prepend(
-                            '<tr class="passcode-history-row" data-clipboard-action="copy"  data-clipboard-text="' + passcodeResult + '">\
+                            '<tr class="passcode-history-row">\
                             <td class="mdl-data-table__cell--non-numeric" style="white-space: pre;">' + passcodeResult + '</td>\
                             <td class="mdl-data-table__cell--non-numeric">' + transactionID + '</td>\
                             <td>' + total + '</td>\
                             </tr>\
                             ');
-
-                        // Initilaize clipboard event
-                        var copy = new Clipboard(".passcode-history-row");
 
                         // Refresh the table because something was just changed
                         $("#passcode-start").click();
