@@ -31,7 +31,8 @@
       "js": [
         "script.js",
         "jquery.min.js",
-        "material.min.js"
+        "material.min.js",
+        "clipboard.min.js"
       ],
       "run_at": "document_end",
       "match_about_blank": true

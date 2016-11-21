@@ -212,7 +212,7 @@ function passcodeFetcher() {
     loadScriptDependencies(["jquery.min.js", "material.min.js"], ()=> {
         // Create a button on the page
         var $button = $(
-            '<button style="position: fixed; bottom: 20px; right: 20px; z-index: 999;" id="passcode-start" href="#" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast ">Fetch</button>');
+            '<button style="position: fixed; bottom: 25px; right: 20px; z-index: 999;" id="passcode-start" href="#" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast ">Fetch</button>');
         $button.appendTo("html");
         componentHandler.upgradeDom();
 
@@ -222,14 +222,24 @@ function passcodeFetcher() {
             // Test if the dialog has been initialized
             if (!$("#passcode-fetcher").length) {
                 var $dialog = $(
-                    '<div style="position: fixed; right: 20px; bottom: 20px; z-index: 999; font-family: Roboto" id="passcode-fetcher">\
-                        <div class="mdl-card mdl-shadow--2dp" style="min-height: 0;">\
+                    '<div style="position: fixed; right: 20px; bottom: 20px; z-index: 999; font-family: Roboto;" id="passcode-fetcher">\
+                        <div class="mdl-card mdl-shadow--2dp" style="width: 450px; margin-right: 10px; display: inline-block; min-height: 0px;">\
+                            <table id="passcode-history" class="mdl-data-table mdl-shadow--2dp" width="100%">\
+                            <thead><tr>\
+                                <th class="mdl-data-table__cell--non-numeric">Passcode</th>\
+                                <th class="mdl-data-table__cell--non-numeric">Transaction ID</th>\
+                                <th>Total</th>\
+                            </tr></thead><tbody></tbody>\
+                            </table>\
+                        </div>\
+                        <div class="mdl-card mdl-shadow--2dp" style="min-height: 0; display: inline-block;">\
                             <div id="passcode-status" class="mdl-card__supporting-text" style="text-align: center; align-self: center;"></div>\
                             <div id="passcode-progress" class="mdl-progress mdl-js-progress mdl-progress__indeterminate" style="position: absolute; top: 0;"></div>\
                         </div>\
                     </div>');
 
                 $dialog.hide().appendTo("html");
+                $("#passcode-history").parent().hide();
                 componentHandler.upgradeDom();
             }
 
@@ -313,7 +323,12 @@ function passcodeFetcher() {
                 // Append the action bar
                 if (!$("#passcode-actions").length) {
                     $list = $(
-                        '<div id="passcode-actions" class="mdl-card__actions mdl-card--border" style="min-height: 0;">\
+                        '<div class="mdl-card__menu" style="right: 5px; top: 10px;">\
+                        <button id="passcode-close" class="mdl-button mdl-js-button mdl-button--icon">\
+                            <i class="material-icons">close</i>\
+                        </button>\
+                        </div>\
+                        <div id="passcode-actions" class="mdl-card__actions mdl-card--border" style="min-height: 0;">\
                         <button id="passcode-get" class="mdl-button mdl-js-button mdl-button--icon">\
                             <i class="material-icons">file_download</i>\
                         </button>\
@@ -341,7 +356,6 @@ function passcodeFetcher() {
                 // These can only be done when all the components are loaded
                 setProgressBarVisibility(false);
                 $("#passcode-table").find("td:nth-child(1)").width(0);
-
 
                 // Add event listener: save the data
                 $("#passcode-get").unbind("click").click(() => {
@@ -428,6 +442,16 @@ function passcodeFetcher() {
                         $("#passcode-result").val(passcodeResult.substr(0, passcodeResult.length - 1));
                         $("#passcode-copy").prop("disabled", false);
 
+                        // Add to history
+                        $("#passcode-history").parent().fadeIn();
+                        $("#passcode-history").find("tbody").prepend(
+                            '<tr>\
+                            <td class="mdl-data-table__cell--non-numeric" style="white-space: pre;">' + passcodeResult + '</td>\
+                            <td class="mdl-data-table__cell--non-numeric">' + transactionID + '</td>\
+                            <td>' + total + '</td>\
+                            </tr>\
+                            ');
+
                         // Refresh the table because something was just changed
                         $("#passcode-start").click();
                     });
@@ -442,9 +466,13 @@ function passcodeFetcher() {
 
                     document.execCommand("copy");
                 });
+
+                // Add event listener to close the dialog
+                $("#passcode-close").unbind("click").click(() => {
+                    $("#passcode-fetcher").fadeOut();
+                });
             });
 
-            // Todo Add event listener to close the dialog
             $("#passcode-fetcher").fadeIn();
         });
     });
