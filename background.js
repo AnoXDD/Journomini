@@ -30,26 +30,33 @@ var lastItemID;
  * @type {Array}
  */
 var scripts = {
-    "FreeFacebook"   : {
+    "FreeFacebook"    : {
         name       : "FreeFacebook", // The name of the script. Must match the key value
         match      : ["www.facebook.com"], // The website(s) to match
         description: "To remove annoying words on Facebook", // The description
         command    : true, // Accepting commands
         execute    : "freeFacebook" // The function to be called in `script.js`, do not include `()`
     },
-    "CloseTabs"      : {
+    "CloseTabs"       : {
         name       : "CloseTabs",
         match      : ["."], // match every site!
         description: "Close left or right tabs",
         command    : false,
         execute    : "closeTabs"
     },
-    "PasscodeFetcher": {
+    "PasscodeFetcher" : {
         name       : "PasscodeFetcher",
         match      : ["www.paypal.com/myaccount", "contact.ebay.com"],
         description: "Automatically fill in the passcode and update the spreadsheet of passcode database",
         command    : false,
         execute    : "passcodeFetcher",
+    },
+    "eBayPreProcessor": {
+        name       : "eBayPreProcessor",
+        match      : ["contact.ebay.com"],
+        description: "Preprocess eBay message to make my passcode fetcher work",
+        command    : false,
+        execute    : "eBayPreProcessor",
     }
 };
 
@@ -828,7 +835,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     fail: true,
                     data: "Unable to update the passcode sheet. Please try again"
                 });
-                
+
             });
         })
 

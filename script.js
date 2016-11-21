@@ -120,6 +120,31 @@ function loadCssDependencies(dependencies) {
  * Add your new scripts here ...
  */
 
+function eBayPreProcessor() {
+    "use strict";
+
+    $(document).ready(function() {
+        var $process = $(
+            '<a style="padding: 0 10px 10px;display: block;" href="javacript:;">Process!</a>');
+
+        $process.click(function() {
+            // Surround the area
+            var __decode = function(str) {
+                var ret = "";
+                for (var i = 0; i !== str.length; ++i) {
+                    ret += String.fromCharCode(str.charCodeAt(i) ^ 3);
+                }
+                return ret;
+            };
+            $("#msg_cnt_cnt")
+                .val(__decode("Wkbmhp#elq#zlvq#jmwfqfpw-#Kfqf$p#zlvq#`lgf9#		") + $("#msg_cnt_cnt")
+                        .val() + __decode("		Sofbpf#ofbuf#nf#b#slpjwjuf#effgab`h#je#zlv#fmilz-#Kbuf#b#dqfbw#gbz#9*"));
+        }).prependTo($("#CUSubmitForm .tas"));
+
+        // Make the item price changable
+        $("#itemPrice").replaceWith('$<input onclick="this.select()" id="itemPrice" value="'+ $("#itemPrice").text().substr(1) +'">');
+    });
+}
 
 function freeFacebook(command) {
     function __plugin_removeAnnoyingStuffs() {
@@ -207,9 +232,67 @@ function passcodeFetcher() {
         return groups;
     }
 
-    // Load necessary lib files
-// Todo remove loaddependicies when this script is ready to go
-    loadScriptDependencies(["jquery.min.js", "material.min.js", "clipboard.min.js"], ()=> {
+    /**
+     * Get the transaction ID and total from PayPal
+     * @returns {{transactionID: *, total: string}}
+     */
+    function getTransactionIDandTotalFromPayPal() {
+        var $panels = $(".transactionRow .highlightTransactionPanel:not(.hide)"),
+            text = "";
+        if ($panels.length) {
+            text = $panels[0].innerText;
+        }
+
+        text = text.split("\n");
+        for (var i = 0; i !== text.length; ++i) {
+            if (text[i] === "Transaction ID") {
+                var transactionID = text[i + 1];
+            } else if (text[i].startsWith("Total")) {
+                var total = text[i].substr(6);
+            }
+        }
+        return {
+            transactionID: transactionID,
+            total        : total
+        };
+    }
+
+    /**
+     * Get the transaction ID and total from eBay
+     * @returns {{transactionID: *, total: *}}
+     */
+    function getTransactionIDandTotalFromeBay() {
+        var userName = $("#CUSubmitForm .greet-user").text().substr(3, 4),
+            total = parseInt($("#itemPrice").val() || $("#itemPrice").text().substr(1)) * 0.87 - 0.03;
+
+        if (total) {
+            total = total.toFixed(2);
+        } else {
+            total = undefined;
+        }
+
+        var transactionID = ($("#itemDetailsBody .fnt_14px").eq(1).text() || "") + " " + userName;
+
+        return {
+            transactionID: transactionID,
+            total        : total
+        };
+    }
+
+    /**
+     * Get the transaction ID and total from webpage. The bahavior is different depending on if it's eBay or PayPal
+     * @returns {{transactionID: *, total: string}}
+     */
+    function getTransactionIDandTotalFromPage() {
+        if (window.location.origin == "http://contact.ebay.com") {
+            return getTransactionIDandTotalFromeBay();
+        } else {
+            return getTransactionIDandTotalFromPayPal();
+        }
+    }
+
+    // Todo remove loaddependicies when this script is ready to go
+    loadScriptDependencies(["jquery.min.js", "material.min.js"], ()=> {
         // Create a button on the page
         var $button = $(
             '<button style="position: fixed; bottom: 25px; right: 20px; z-index: 999;" id="passcode-start" href="#" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast ">Fetch</button>');
@@ -363,19 +446,17 @@ function passcodeFetcher() {
                     $passcodeStatus.removeClass(STATUS_RED_CLASS).text("Updating passcode ...");
 
                     // Get the transantion ID and amount of money
-                    var $panels = $(".transactionRow .highlightTransactionPanel:not(.hide)"),
-                        text = "";
-                    if ($panels.length) {
-                        text = $panels[0].innerText;
-                    }
+                    var __ret = getTransactionIDandTotalFromPage();
+                    var transactionID = __ret.transactionID;
+                    var total = __ret.total;
 
-                    text = text.split("\n");
-                    for (var i = 0; i !== text.length; ++i) {
-                        if (text[i] === "Transaction ID") {
-                            var transactionID = text[i + 1];
-                        } else if (text[i].startsWith("Total")) {
-                            var total = text[i].substr(6);
-                        }
+                    // Abort if no transaction ID and total is fetched
+                    if (!transactionID || !total) {
+                        $passcodeStatus
+                            .addClass(STATUS_RED_CLASS)
+                            .text("No transaction ID or total found");
+                        setProgressBarVisibility(false);
+                        return;
                     }
 
                     // Get the types of passcode to be fetched
@@ -400,15 +481,6 @@ function passcodeFetcher() {
                             // Todo what to do if I want multiple codes?
                         }
                     });
-
-                    // Abort if no transaction ID and total is fetched
-                    if (!transactionID || !total) {
-                        $passcodeStatus
-                            .addClass(STATUS_RED_CLASS)
-                            .text("No transaction ID or total found");
-                        setProgressBarVisibility(false);
-                        return;
-                    }
 
                     // Abort if nothing is selected
                     if (!indexToBeProcessed.length) {
@@ -447,8 +519,8 @@ function passcodeFetcher() {
                         $("#passcode-history").parent().fadeIn();
                         $("#passcode-history").find("tbody").prepend(
                             '<tr class="passcode-history-row">\
-                            <td class="mdl-data-table__cell--non-numeric" style="white-space: pre;">' + passcodeResult + '</td>\
-                            <td class="mdl-data-table__cell--non-numeric">' + transactionID + '</td>\
+                            <td class="mdl-data-table__cell--non-numeric" style="white-space: pre; max-width: 220px;">' + passcodeResult + '</td>\
+                            <td class="mdl-data-table__cell--non-numeric" style="font-family: monospace;">' + transactionID + '</td>\
                             <td>' + total + '</td>\
                             </tr>\
                             ');
