@@ -44,7 +44,8 @@
     "jquery.min.js",
     "material.min.js",
     "material_icons.css",
-    "material_icons.woff2"
+    "material_icons.woff2",
+    "clipboard.min.js"
   ],
   "options_page": "options.html",
   "manifest_version": 2

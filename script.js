@@ -209,7 +209,7 @@ function passcodeFetcher() {
 
     // Load necessary lib files
 // Todo remove loaddependicies when this script is ready to go
-    loadScriptDependencies(["jquery.min.js", "material.min.js"], ()=> {
+    loadScriptDependencies(["jquery.min.js", "material.min.js", "clipboard.min.js"], ()=> {
         // Create a button on the page
         var $button = $(
             '<button style="position: fixed; bottom: 25px; right: 20px; z-index: 999;" id="passcode-start" href="#" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast ">Fetch</button>');
@@ -439,18 +439,22 @@ function passcodeFetcher() {
                         }
 
                         // Success!
-                        $("#passcode-result").val(passcodeResult.substr(0, passcodeResult.length - 1));
+                        passcodeResult = passcodeResult.substr(0, passcodeResult.length - 1);
+                        $("#passcode-result").val(passcodeResult);
                         $("#passcode-copy").prop("disabled", false);
 
                         // Add to history
                         $("#passcode-history").parent().fadeIn();
                         $("#passcode-history").find("tbody").prepend(
-                            '<tr>\
+                            '<tr class="passcode-history-row" data-clipboard-action="copy"  data-clipboard-text="' + passcodeResult + '">\
                             <td class="mdl-data-table__cell--non-numeric" style="white-space: pre;">' + passcodeResult + '</td>\
                             <td class="mdl-data-table__cell--non-numeric">' + transactionID + '</td>\
                             <td>' + total + '</td>\
                             </tr>\
                             ');
+
+                        // Initilaize clipboard event
+                        var copy = new Clipboard(".passcode-history-row");
 
                         // Refresh the table because something was just changed
                         $("#passcode-start").click();
