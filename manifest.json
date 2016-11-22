@@ -1,7 +1,7 @@
 {
   "name": "Journomini",
   "description": "Anoxic's own ominibox twist",
-  "version": "0.3",
+  "version": "0.4.1",
   "browser_action": {
     "default_title": "Sign in",
     "default_popup": "./popup.html"

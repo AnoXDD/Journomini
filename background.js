@@ -492,12 +492,34 @@ function processCommand(cmd) {
 }
 
 /**
- * Saves the changes and upload it to onedrive folder
- * @param {string} value - The content to be uploaded
+ * Signs in. Requires help from the extension to close the sign-in page
+ * @param initiated - whether this has been called before
+ * @returns {boolean} - always true
  */
-function saveChanges(value) {
-    // Check if we have refresh_token
+function signin(initiated) {
+    if (!initiated) {
+        challengeForAuth();
+
+        initiated = true;
+        var checkIntervalCode = setInterval(function() {
+            getFromStorage("code", function(code) {
+                if (code) {
+                    clearInterval(checkIntervalCode);
+                    onAuthCallback(code);
+                }
+            })
+        }, 1000);
+    }
+    return initiated;
+}
+
+/**
+ * Signs in or refresh token
+ * @param {function} callbackOnSuccess - the callback function when it gets the token
+ */
+function signInOrRefreshToken(callbackOnSuccess) {
     var initiated = false;
+
     var checkInterval = setInterval(function() {
         getFromStorage("refresh",
             function(refresh) {
@@ -507,24 +529,25 @@ function saveChanges(value) {
                     // Get the token
                     refreshToken(function(token) {
                         // Create a new file and upload it
-                        uploadFileBulb(value, token);
+                        if (typeof callbackOnSuccess === "function") {
+                            callbackOnSuccess(token);
+                        }
                     })
                 } else {
-                    if (!initiated) {
-                        challengeForAuth();
-                        initiated = true;
-                        var checkIntervalCode = setInterval(function() {
-                            getFromStorage("code", function(code) {
-                                if (code) {
-                                    clearInterval(checkIntervalCode);
-                                    onAuthCallback(code);
-                                }
-                            })
-                        }, 1000);
-                    }
+                    initiated = signin(initiated);
                 }
             });
     }, 1000);
+}
+/**
+ * Saves the changes and upload it to onedrive folder
+ * @param {string} value - The content to be uploaded
+ */
+function saveChanges(value) {
+    // Check if we have refresh_token
+    signInOrRefreshToken((token)=> {
+        uploadFileBulb(value, token);
+    });
 }
 
 /**

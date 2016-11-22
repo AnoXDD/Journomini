@@ -142,7 +142,10 @@ function eBayPreProcessor() {
         }).prependTo($("#CUSubmitForm .tas"));
 
         // Make the item price changable
-        $("#itemPrice").replaceWith('$<input onclick="this.select()" id="itemPrice" value="'+ $("#itemPrice").text().substr(1) +'">');
+        $("#itemPrice")
+            .replaceWith('$<input onclick="this.select()" id="itemPrice" value="' + $("#itemPrice")
+                    .text()
+                    .substr(1) + '">');
     });
 }
 
@@ -306,9 +309,10 @@ function passcodeFetcher() {
             if (!$("#passcode-fetcher").length) {
                 var $dialog = $(
                     '<div style="position: fixed; right: 20px; bottom: 20px; z-index: 999; font-family: Roboto;" id="passcode-fetcher">\
-                        <div class="mdl-card mdl-shadow--2dp" style="width: 450px; margin-right: 10px; display: inline-block; min-height: 0px;">\
-                            <table id="passcode-history" class="mdl-data-table mdl-shadow--2dp" width="100%">\
+                        <div class="mdl-card mdl-shadow--2dp" style="width: 480px; margin-right: 10px; display: inline-block; min-height: 0px;">\
+                            <table id="passcode-history" class="mdl-data-table mdl-shadow--2dp" style="width: calc(100% + 17px); max-height: 500px; overflow-y: visible; overflow-x: hidden; display: block;">\
                             <thead><tr>\
+                                <th class="mdl-data-table__cell--non-numeric">Time</th>\
                                 <th class="mdl-data-table__cell--non-numeric">Passcode</th>\
                                 <th class="mdl-data-table__cell--non-numeric">Transaction ID</th>\
                                 <th>Total</th>\
@@ -369,16 +373,17 @@ function passcodeFetcher() {
                         });
                     }
                 }
-                sortedCards.sort((lhs, rhs) => {
-                    return lhs.type > rhs.type;
+
+                sortedCards = sortedCards.sort((lhs, rhs) => {
+                    return lhs.type.localeCompare(rhs.type);
                 });
 
                 // Construct DOMs
                 $("#passcode-table").remove();
-                var $list = '<table id="passcode-table" class="mdl-data-table mdl-shadow--2dp" style="width: 100%;">\
+                var $list = '<table id="passcode-table" class="mdl-data-table mdl-shadow--2dp" style="width: 347px; max-height: 500px; overflow-y: visible; overflow-x: hidden; display: block;">\
                     <thead><tr>\
-                    <th></th>\
-                    <th class="mdl-data-table__cell--non-numeric">Type</th>\
+                    <th style="width: 60px;"></th>\
+                    <th style="width: 180px;" class="mdl-data-table__cell--non-numeric">Type</th>\
                     <th>Quantity</th>\
                     </tr></thead>\
                     <tbody>';
@@ -493,7 +498,7 @@ function passcodeFetcher() {
 
                     // Update the passcode sheet
                     $.each(indexToBeProcessed, (i, index) => { // `index` is what we want
-                        passcodeSheet[index][4] = "Redeemed";
+                        passcodeSheet[index][4] = new Date().toISOString();
                         passcodeSheet[index][5] = total;
                         passcodeSheet[index][6] = transactionID;
                     });
@@ -519,6 +524,7 @@ function passcodeFetcher() {
                         $("#passcode-history").parent().fadeIn();
                         $("#passcode-history").find("tbody").prepend(
                             '<tr class="passcode-history-row">\
+                            <td class="mdl-data-table__cell--non-numeric" style="white-space: pre; width: 64px;">' + new Date().toTimeString().substr(0, 8) + '</td>\
                             <td class="mdl-data-table__cell--non-numeric" style="white-space: pre; max-width: 220px;">' + passcodeResult + '</td>\
                             <td class="mdl-data-table__cell--non-numeric" style="font-family: monospace;">' + transactionID + '</td>\
                             <td>' + total + '</td>\
