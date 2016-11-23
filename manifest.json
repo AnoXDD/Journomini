@@ -1,15 +1,15 @@
 {
   "name": "Journomini",
   "description": "Anoxic's own ominibox twist",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "browser_action": {
     "default_title": "Sign in",
     "default_popup": "./popup.html"
   },
   "background": {
     "scripts": [
-      "jquery.min.js",
-      "background.js"
+      "static/js/lib/jquery.min.js",
+      "static/js/background.js"
     ]
   },
   "omnibox": {
@@ -29,21 +29,25 @@
         "<all_urls>"
       ],
       "js": [
-        "script.js",
-        "jquery.min.js",
-        "material.min.js"
+        "static/js/script.js",
+        "static/js/lib/jquery.min.js",
+        "static/js/lib/material.min.js"
       ],
+//      "css": [
+//        "static/css/lib/material.min.css",
+//        "static/css/lib/material_icons.css"
+//      ],
       "run_at": "document_end",
       "match_about_blank": true
     }
   ],
   "web_accessible_resources": [
-    "icon.png",
-    "success.ogg",
-    "jquery.min.js",
-    "material.min.js",
-    "material_icons.css",
-    "material_icons.woff2"
+    "static/icon.png",
+    "static/success.ogg",
+    "static/js/lib/jquery.min.js",
+    "static/js/lib/material.min.js",
+    "static/css/lib/material_icons.css",
+    "static/css/lib/material_icons.woff2"
   ],
   "options_page": "options.html",
   "manifest_version": 2
