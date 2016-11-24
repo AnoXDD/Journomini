@@ -1,5 +1,36 @@
-body * {
-  font-family: "Roboto" !important; }
+body.passcode-fetcher {
+  font-family: Roboto;
+  overflow: hidden; }
+  body.passcode-fetcher .mdl-card {
+    min-height: 0;
+    width: 540px; }
+    body.passcode-fetcher .mdl-card .mdl-card__supporting-text {
+      text-align: center;
+      align-self: center; }
+  body.passcode-fetcher .mdl-data-table {
+    width: calc(100% + 17px);
+    height: 451px;
+    overflow-y: visible;
+    overflow-x: hidden;
+    display: block; }
+    body.passcode-fetcher .mdl-data-table#passcode-history {
+      height: 500px; }
+    body.passcode-fetcher .mdl-data-table .checkbox-col {
+      width: 60px; }
+    body.passcode-fetcher .mdl-data-table .type-col {
+      width: 72%; }
+    body.passcode-fetcher .mdl-data-table .time-col {
+      white-space: pre;
+      width: 64px; }
+    body.passcode-fetcher .mdl-data-table .passcode-col {
+      white-space: pre;
+      max-width: 220px;
+      width: 220px; }
+    body.passcode-fetcher .mdl-data-table .transaction-id-col {
+      font-family: monospace; }
+  body.passcode-fetcher .mdl-progress {
+    position: absolute;
+    top: 0; }
 
 .content {
   margin: 25px 0;

@@ -1,8 +1,56 @@
-body * {
-  font-family: "Roboto" !important;
-}
+body.passcode-fetcher {
+  font-family: Roboto;
+  overflow: hidden;
 
-#content {
+  .mdl-card {
+    min-height: 0;
+    width: 540px;
+
+    .mdl-card__supporting-text {
+      text-align: center;
+      align-self: center;
+    }
+  }
+
+  .mdl-data-table {
+    width: calc(100% + 17px);
+    height: 451px;
+    overflow-y: visible;
+    overflow-x: hidden;
+    display: block;
+
+    &#passcode-history {
+      height: 500px;
+    }
+
+    .checkbox-col {
+      width: 60px;
+    }
+
+    .type-col {
+      width: 72%;
+    }
+
+    .time-col {
+      white-space: pre;
+      width: 64px;
+    }
+
+    .passcode-col {
+      white-space: pre;
+      max-width: 220px;
+      width: 220px;
+    }
+
+    .transaction-id-col {
+      font-family: monospace;
+    }
+  }
+
+  .mdl-progress {
+    position: absolute;
+    top: 0;
+  }
 }
 
 .content {
@@ -14,20 +62,21 @@ body * {
     margin: 0 auto;
     width: 600px;
     padding: 20px;
-    min-height:100px;
+    min-height: 100px;
 
     .mdl-card__title {
       display: block;
 
-    .mdl-card__title-text {
-      font-weight: bold;
-      padding: 0 20px 0;
-    }
+      .mdl-card__title-text {
+        font-weight: bold;
+        padding: 0 20px 0;
+      }
 
-    .match {
-      padding-top: 4px;
-      float: right;
-    }}
+      .match {
+        padding-top: 4px;
+        float: right;
+      }
+    }
 
     .mdl-card__menu {
       top: 40px;
@@ -42,7 +91,7 @@ body * {
       padding-left: 20px;
 
       .mdl-textfield {
-        width:175%;
+        width: 175%;
       }
     }
 

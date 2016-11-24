@@ -3,7 +3,7 @@
   "description": "Anoxic's own ominibox twist",
   "version": "0.4.2",
   "browser_action": {
-    "default_title": "Sign in",
+    "default_title": "Fetcher",
     "default_popup": "./popup.html"
   },
   "background": {
@@ -29,25 +29,15 @@
         "<all_urls>"
       ],
       "js": [
-        "static/js/script.js",
-        "static/js/lib/jquery.min.js",
-        "static/js/lib/material.min.js"
+        "static/js/script.js"
       ],
-//      "css": [
-//        "static/css/lib/material.min.css",
-//        "static/css/lib/material_icons.css"
-//      ],
       "run_at": "document_end",
       "match_about_blank": true
     }
   ],
   "web_accessible_resources": [
     "static/icon.png",
-    "static/success.ogg",
-    "static/js/lib/jquery.min.js",
-    "static/js/lib/material.min.js",
-    "static/css/lib/material_icons.css",
-    "static/css/lib/material_icons.woff2"
+    "static/success.ogg"
   ],
   "options_page": "options.html",
   "manifest_version": 2

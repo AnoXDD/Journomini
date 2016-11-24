@@ -44,13 +44,6 @@ var scripts = {
         command    : false,
         execute    : "closeTabs"
     },
-    "PasscodeFetcher" : {
-        name       : "PasscodeFetcher",
-        match      : ["www.paypal.com/myaccount", "contact.ebay.com"],
-        description: "Automatically fill in the passcode and update the spreadsheet of passcode database",
-        command    : false,
-        execute    : "passcodeFetcher",
-    },
     "eBayPreProcessor": {
         name       : "eBayPreProcessor",
         match      : ["contact.ebay.com"],

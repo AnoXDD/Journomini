@@ -1,292 +1,372 @@
+"use strict";
+
+// What to show up in the final result, case SENSITIVE
+var filter = ["eBay"];
+const STATUS_RED_CLASS = "mdl-color-text--red-600";
 
 /**
- * For fetching login detail from Microsoft
+ * Set the visitiblity of the progress bar
+ * @param isVisible
  */
-
-function odauth() {
-    ensureHttps();
-    var token = getTokenFromCookie(),
-		refresh = getRefreshFromCookie();
-    if (token) {
-        onAuthenticated(token);
-    } else if (refresh) {
-        refreshToken();
+function setProgressBarVisibility(isVisible) {
+    if (isVisible) {
+        $("#passcode-progress").fadeIn();
     } else {
-        challengeForAuth();
-    }
-}
-
-// for added security we require https
-function ensureHttps() {
-    if (window.location.protocol != "https:") {
-        window.location.href = "https:" + window.location.href.substring(window.location.protocol.length);
-    }
-}
-
-function onAuthCallback() {
-    var authInfo = getAuthInfoFromUrl(),
-		code = authInfo["code"],
-		appinfo = window.opener.getAppInfo();
-    // Redeem the code: post to get authentication token
-    $.ajax({
-        type: "POST",
-        url: "https://login.live.com/oauth20_token.srf",
-        contentType: "application/x-www-form-urlencoded",
-        data: "client_id=" + appinfo.clientId +
-			"&redirect_uri=" + appinfo.redirectUri +
-			"&client_secret=" + appinfo.clientSecret +
-			"&code=" + code +
-			"&grant_type=authorization_code"
-    }).done(function(data, status, xhr) {
-        // Try to get the access token and expiry
-        var token = data["access_token"],
-			refresh = data["refresh_token"],
-			expiry = parseInt(data["expires_in"]);
-        window.opener.setCookie(token, expiry, refresh);
-        window.opener.onAuthenticated(token, window);
-    }).fail(function() {
-        alert("Cannot get the code. Did you enable CORS?");
-    });
-}
-
-function getAuthInfoFromUrl() {
-    if (window.location.search) {
-        var authResponse = window.location.search.substring(1);
-        var authInfo = JSON.parse(
-		  "{\"" + authResponse.replace(/&/g, "\",\"").replace(/=/g, "\":\"") + "\"}",
-		  function(key, value) { return key === "" ? value : decodeURIComponent(value); });
-        return authInfo;
-    } else {
-        alert("failed to receive auth token");
+        $("#passcode-progress").fadeOut();
     }
 }
 
 /**
- * Gets a valid access token then do the callback. This method will guarantee token will be available in the next 5 minutes
- * @param {function} callback - the callback function with optional arguments "token" to process the access token later
- * @returns {}
+ * Process the raw fetched data from the server
+ * @param data - raw plain csv fetched from server
  */
-function getTokenCallback(callback) {
-    if (getTokenFromCookie()) {
-        var token = getTokenFromCookie();
-        callback(token);
-    } else if (getRefreshFromCookie()) {
-        // Previous session expired
-        animation.log(log.AUTH_REFRESH_EXPIRED);
-        refreshToken(callback);
-    }
-}
+function processRawData(data) {
+    // Split the data into groups
+    var groups = data.replace(/\r/g, "").split('\n');
 
-/**
- * Gets the access token from the cookie
- * @param {function} callback - the callback function after retrieving is done
- * @returns {string} - The token if found, empty string otherwise
- */
-function getTokenFromCookie(callback) {
-    return getFromCookie("odauth", callback);
-}
-
-function getRefreshFromCookie(callback) {
-    return getFromCookie("refresh", callback);
-}
-
-/**
- * Gets the cookie component specifying the name
- * @param {string} name - the name to be searched
- * @returns {string} the result. Empty string if not found
- */
-function getFromCookie(name) {
-    name += "=";
-    var cookies = document.cookie,
-		start = cookies.indexOf(name);
-    if (start >= 0) {
-        start += name.length;
-        var end = cookies.indexOf(";", start);
-        if (end < 0) {
-            end = cookies.length;
+    for (var i = 0; i !== groups.length; ++i) {
+        if (groups[i].length) {
+            groups[i] = groups[i].split(',');
         } else {
-            postCookie = cookies.substring(end);
+            groups.splice(i--, 1);
+        }
+    }
+
+    return groups;
+}
+
+/**
+ * Get the transaction ID and total from PayPal
+ * @returns {{transactionID: *, total: string}}
+ */
+function getTransactionIDandTotalFromPayPal() {
+    var $panels = $(".transactionRow .highlightTransactionPanel:not(.hide)"),
+        text = "";
+    if ($panels.length) {
+        text = $panels[0].innerText;
+    }
+
+    text = text.split("\n");
+    for (var i = 0; i !== text.length; ++i) {
+        if (text[i] === "Transaction ID") {
+            var transactionID = text[i + 1];
+        } else if (text[i].startsWith("Total")) {
+            var total = text[i].substr(6);
+        }
+    }
+    return {
+        transactionID: transactionID,
+        total        : total
+    };
+}
+
+/**
+ * Get the transaction ID and total from eBay
+ * @returns {{transactionID: *, total: *}}
+ */
+function getTransactionIDandTotalFromeBay() {
+    var userName = $("#CUSubmitForm .greet-user").text().substr(3, 4),
+        total = parseInt($("#itemPrice").val() || $("#itemPrice").text().substr(1)) * 0.87 - 0.03;
+
+    if (total) {
+        total = total.toFixed(2);
+    } else {
+        total = undefined;
+    }
+
+    var transactionID = ($("#itemDetailsBody .fnt_14px").eq(1).text() || "") + " " + userName;
+
+    return {
+        transactionID: transactionID,
+        total        : total
+    };
+}
+
+/**
+ * Get the transaction ID and total from webpage. The bahavior is different depending on if it's eBay or PayPal
+ * @returns {{transactionID: *, total: string}}
+ */
+function getTransactionIDandTotalFromPage() {
+    if (window.location.origin == "http://contact.ebay.com") {
+        return getTransactionIDandTotalFromeBay();
+    } else {
+        return getTransactionIDandTotalFromPayPal();
+    }
+}
+
+/**
+ * Add a passcode entry to the whole history
+ * @param passcode - The passcode that fetched
+ * @param transactionID - the ID of this transaction
+ * @param total - the total of this transaction ($34, e.g.)
+ */
+function addEntryToPasscodeHistory(passcode, transactionID, total) {
+    $("#passcode-history").find("tbody").prepend(
+        '<tr class="passcode-history-row">\
+                    <td class="mdl-data-table__cell--non-numeric">' + new Date().toTimeString()
+            .substr(0, 8) + '</td>\
+                            <td class="mdl-data-table__cell--non-numeric passcode-col">' + passcode + '</td>\
+                            <td class="mdl-data-table__cell--non-numeric transaction-id-col">' + transactionID + '</td>\
+                            <td>' + total + '</td>\
+                            </tr>\
+                            ');
+}
+
+/**
+ * For debug only. Push a new entry to the history table
+ */
+function debug__addEntryToPasscodeHistory(lineOfPasscode) {
+    lineOfPasscode = lineOfPasscode || 1;
+
+    var passcode = [];
+    for (var i = 0; i !== lineOfPasscode; ++i) {
+        passcode.push("Passcode PASSCODELONGENOUGH");
+    }
+
+    addEntryToPasscodeHistory(passcode.join('\n'), "00000000000000000", parseInt(Math.random() * 1000) / 100);
+}
+
+$(document).ready(() => {
+    var passcodeSheet;
+
+    setProgressBarVisibility(true);
+
+    $("#passcode-status").removeClass(STATUS_RED_CLASS).text("Fetching ...");
+
+    chrome.runtime.sendMessage({task: "passcodeFetch"}, (response)=> {
+        setProgressBarVisibility(false);
+
+        // Test if fetching is successful
+        if (response.fail) {
+            $("#passcode-status").addClass(STATUS_RED_CLASS).text(response.data);
+            return;
         }
 
-        var value = cookies.substring(start, end);
-        return value;
-    }
+        passcodeSheet = processRawData(response.data);
 
-    return "";
-}
+        // Process the cards to be shown in the dialog
+        var eligibleCards = {};
+        for (var i = 0; i !== passcodeSheet.length; ++i) {
+            for (var j = 0; j !== filter.length; ++j) {
+                if (passcodeSheet[i].indexOf(filter[j]) !== -1 && !passcodeSheet[i][5].length) {
+                    // Eligible for a code to be given
+                    var entry = passcodeSheet[i];
+                    var type = entry[1] === "Card" ?
+                    entry[0] + " card" :
+                        (entry[0] === "Loadout" ? " Loadout (" + entry[1] + ")" : entry[1]);
 
-/**
- * Gets the local storage component of this extension specifying the name
- * @param {string} name - the name to be searched
- * @param {function} callback - the callback function after retrieving is done
- */
-function getFromStorage(name, callback) {
-    chrome.storage.local.get(name, function(result) {
-        callback(result.name);
-    });
-}
+                    eligibleCards[type] = eligibleCards[type] || [];
 
-/**
- * Sets the cookie of access token and refresh token to cookie
- * @param {string} token - the access token
- * @param {number} expiresInSeconds - the expire time in seconds of access token
- * @param {string} refreshToken - the refresh token
- */
-function setCookie(token, expiresInSeconds, refreshToken) {
-    var expiration = new Date();
-    // Expiration set up back 5 minutes
-    expiration.setTime(expiration.getTime() + expiresInSeconds * 1000 - 300000);
-    localStorage["expiration"] = expiration.getTime();
-    // Access token
-    var cookie = "odauth=" + token + "; path=/; expires=" + expiration.toUTCString();
-    console.log("setCookie(): cookie = " + cookie);
-    if (document.location.protocol.toLowerCase() == "https") {
-        cookie = cookie + ";secure";
-    }
-    document.cookie = cookie;
-    // Refresh token
-    // Expire after a year
-    expiration.setTime(expiration.getTime() + 31536000000);
-    cookie = "refresh=" + refreshToken + "; path=/; expires=" + expiration.toUTCString();
-    if (document.location.protocol.toLowerCase() == "https") {
-        cookie = cookie + ";secure";
-    }
-    document.cookie = cookie;
-}
+                    eligibleCards[type].push(i);
+                }
+            }
+        }
 
-/**
- * Toggles auto refresh token, the default is true
- */
-function toggleAutoRefreshToken() {
-    var func = function() {
-        refreshToken();
-    };
-    if (toggleAutoRefreshToken.id) {
-        // Turn off auto refresh
-        $("#toggle-refresh-token").fadeOut(300, function() {
-            $(this).html("&#xf204");
-        }).fadeIn(300);
-        animation.log(log.AUTH_REFRESH_AUTO_OFF);
-        clearInterval(toggleAutoRefreshToken.id);
-        toggleAutoRefreshToken.id = undefined;
-    } else {
-        // Set to refresh token every 30 minute
-        $("#toggle-refresh-token").fadeOut(300, function() {
-            $(this).html("&#xf205");
-        }).fadeIn(300);
-        animation.log(log.AUTH_REFRESH_AUTO_ON);
-        //refreshToken();
-        toggleAutoRefreshToken.id = setInterval(func, 1800000);
-    }
-}
+        // Sort them based on the card type
+        var sortedCards = [];
+        for (var card in eligibleCards) {
+            if (eligibleCards.hasOwnProperty(card)) {
+                sortedCards.push({
+                    type: card,
+                    data: eligibleCards[card]
+                });
+            }
+        }
 
-/**
- * Refreshes the token to get a new access token, then call the callback
- * @param {function} callback - A callback function that can have a parameter to handle the ACCESS TOKEN passed in. This function will only be called if the token is successfully refreshed
- */
-function refreshToken(callback) {
-    animation.log(log.AUTH_REFRESH_ACCESS_START, 1);
-    var refresh = getRefreshFromCookie(),
-		appinfo = getAppInfo();
-    if (refresh) {
-        $.ajax({
-            type: "POST",
-            url: "https://login.live.com/oauth20_token.srf",
-            contentType: "application/x-www-form-urlencoded",
-            data: "client_id=" + appinfo.clientId +
-				"&redirect_uri=" + appinfo.redirectUri +
-				"&client_secret=" + appinfo.clientSecret +
-				"&refresh_token=" + refresh +
-				"&grant_type=refresh_token"
-        }).done(function(data, status, xhr) {
-            var token = data["access_token"],
-				refresh = data["refresh_token"],
-				expiry = parseInt(data["expires_in"]);
-            setCookie(token, expiry, refresh);
-            animation.log(log.AUTH_REFRESH_ACCESS_END, -1);
-            if (typeof (callback) === "function")
-                callback(token);
-        }).fail(function(xhr, status, error) {
-            animation.error(log.AUTH_REFRESH_ACCESS_FAILED + log.SERVER_RETURNS + status + log.SERVER_RETURNS_END, -1);
+        sortedCards = sortedCards.sort((lhs, rhs) => {
+            return lhs.type.localeCompare(rhs.type);
         });
-    } else {
-        // No refresh token, then try to sign in
-        challengeForAuth();
-    }
-}
 
-function getAppInfo() {
-    var appInfo = {
-        clientId: "000000004C14D0D9",
-        clientSecret: "ywGrXJMufpTJxa5AsQCd3ovdMasZSnxf",
-        scopes: "wl.signin wl.offline_access onedrive.readwrite onedrive.appfolder",
-        redirectUri: "https://anoxdd.github.io/journal/callback.html"
-    };
+        // Construct DOMs
+        $("#passcode-table").remove();
+        var $list = '<table id="passcode-table" class="mdl-data-table mdl-shadow--2dp">\
+                    <thead><tr>\
+                    <th class="checkbox-col"></th>\
+                    <th class="mdl-data-table__cell--non-numeric type-col">Type</th>\
+                    <th>Quantity</th>\
+                    </tr></thead>\
+                    <tbody>';
 
-    return appInfo;
-}
+        for (i = 0; i !== sortedCards.length; ++i) {
+            type = sortedCards[i].type;
+            var idName = "passcode" + type.replace(/ /g, "-");
 
-function challengeForAuth() {
-    var appInfo = getAppInfo();
-    var url =
-	  "https://login.live.com/oauth20_authorize.srf" +
-	  "?client_id=" + appInfo.clientId +
-	  "&scope=" + encodeURIComponent(appInfo.scopes) +
-	  "&response_type=code" +
-	  "&redirect_uri=" + encodeURIComponent(appInfo.redirectUri);
-    console.log(url);
-    popup(url);
-}
-
-function popup(url) {
-    var width = 525,
-		height = 525,
-		screenX = window.screenX,
-		screenY = window.screenY,
-		outerWidth = window.outerWidth,
-		outerHeight = window.outerHeight;
-
-    var left = screenX + Math.max(outerWidth - width, 0) / 2;
-    var top = screenY + Math.max(outerHeight - height, 0) / 2;
-
-    var features = [
-				"width=" + width,
-				"height=" + height,
-				"top=" + top,
-				"left=" + left,
-				"status=no",
-				"resizable=yes",
-				"toolbar=no",
-				"menubar=no",
-				"scrollbars=yes"];
-    var popup = window.open(url, "oauth", features.join(","));
-    if (!popup) {
-        alert("failed to pop up auth window");
-    }
-
-    popup.focus();
-}
-
-function onAuthenticated(token, authWindow) {
-    if (token) {
-        if (authWindow) {
-            authWindow.close();
+            $list +=
+                '<tr>\
+                <td>\
+                    <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect mdl-data-table__select" for="' + idName + '">\
+                            <input type="checkbox" id="' + idName + '" class="mdl-checkbox__input" />\
+                            </label>\
+                        </td>\
+                        <td class="mdl-data-table__cell--non-numeric">' + type + '</td>\
+                        <td>' + sortedCards[i].data.length + '</td></tr>';
         }
-    }
-}
 
+        $list += '</tbody></table>';
 
+        $list = $($list);
+        $list.prependTo("#passcode-table-panel");
 
-// Add event listener
-var signin = document.getElementById("signin");
-signin.addEventListener("click", function() {
-    // odauth();
-    WL.init({
-        client_id: "000000004C14D0D9",
-        redirect_uri: "https://login.live.com/oauth20_desktop.srf",
-        response_type: "code"
+        // Append the action bar
+        if (!$("#passcode-actions").length) {
+            $list = $(
+                '<div id="passcode-actions" class="mdl-card__actions mdl-card--border" style="min-height: 0;">\
+                <button id="passcode-get" class="mdl-button mdl-js-button mdl-button--icon">\
+                    <i class="material-icons">file_download</i>\
+                </button>\
+                <button class="mdl-button mdl-js-button mdl-button--icon">\
+                    <i class="material-icons">delete</i>\
+                </button>\
+                <button id="passcode-copy" class="mdl-button mdl-js-button mdl-button--icon" disabled>\
+                    <i class="material-icons">content_copy</i>\
+                </button>\
+                <div class="mdl-textfield mdl-js-textfield" style="position: absolute; right: 3px; bottom: -9px; width: 200px; resize: none; " readonly>\
+                    <textarea class="mdl-textfield__input" type="text" rows= "1" id="passcode-result" style="resize: none; font-family: Roboto; font-size: 12px; " readonly></textarea>\
+                    <label class="mdl-textfield__label" for="passcode-result" style="font-family: Roboto"></label>\
+                </div>\
+                </div>');
+
+            $list.insertAfter("#passcode-table");
+        }
+
+        // Update message
+        var $passcodeStatus = $("#passcode-status");
+        $passcodeStatus.text("Fetched");
+
+        componentHandler.upgradeDom();
+
+        // These can only be done when all the components are loaded
+        setProgressBarVisibility(false);
+        $("#passcode-table").find("td:nth-child(1)").width(0);
+
+        // Add event listener: save the data
+        $("#passcode-get").unbind("click").click(() => {
+            setProgressBarVisibility(true);
+            $passcodeStatus.removeClass(STATUS_RED_CLASS).text("Updating passcode ...");
+
+            // Get the transantion ID and amount of money
+            var __ret = getTransactionIDandTotalFromPage();
+            var transactionID = __ret.transactionID;
+            var total = __ret.total;
+
+            // Abort if no transaction ID and total is fetched
+            if (!transactionID || !total) {
+                $passcodeStatus
+                    .addClass(STATUS_RED_CLASS)
+                    .text("No transaction ID or total found");
+                setProgressBarVisibility(false);
+                return;
+            }
+
+            // Get the types of passcode to be fetched
+            $("#passcode-table").find("input").each(function(index) {
+                if ($(this).prop("checked")) {
+                    // This is selected
+                    sortedCards[index].selected = true;
+                }
+            });
+
+            // Get the indices of passcode to be fetched
+            var indexToBeProcessed = [],
+                passcodeResult = "";
+            $.each(sortedCards, (index, data)=> {
+                if (data.selected) {
+                    // Yes this is a type of which we want code
+                    var index = data.data[0];
+
+                    indexToBeProcessed.push(index); // 0 for fetching the first element
+                    passcodeResult += data.type + " " + passcodeSheet[index][2] + "\n";
+
+                    // Todo what to do if I want multiple codes?
+                }
+            });
+
+            // Abort if nothing is selected
+            if (!indexToBeProcessed.length) {
+                $passcodeStatus
+                    .addClass(STATUS_RED_CLASS)
+                    .text("Nothing is selected");
+                setProgressBarVisibility(false);
+                return;
+            }
+
+            // Update the passcode sheet
+            $.each(indexToBeProcessed, (i, index) => { // `index` is what we want
+                passcodeSheet[index][4] = new Date().toISOString();
+                passcodeSheet[index][5] = total;
+                passcodeSheet[index][6] = transactionID;
+            });
+
+            // Finally, upload it
+            chrome.runtime.sendMessage({
+                task: "passcodeSave",
+                data: passcodeSheet.join("\n")
+            }, (response) => {
+                if (response.fail) {
+                    $passcodeStatus.addClass(STATUS_RED_CLASS)
+                        .text(response.data);
+                    setProgressBarVisibility(false);
+                    return;
+                }
+
+                // Success!
+                passcodeResult = passcodeResult.substr(0, passcodeResult.length - 1);
+                $("#passcode-result").val(passcodeResult);
+                $("#passcode-copy").prop("disabled", false);
+
+                addEntryToPasscodeHistory(passcodeResult, transactionID, total);
+
+                // Refresh the table because something was just changed
+                $("#passcode-start").click();
+            });
+        });
+
+        // Add event listener for copy
+        $("#passcode-copy").unbind("click").click(() => {
+            // Copy to the clipboard
+            var result = document.getElementById("passcode-result");
+            result.focus();
+            result.setSelectionRange(0, result.value.length);
+
+            document.execCommand("copy");
+        });
+
+        // Add event listener for querying the passcode
+        $("#passcode-query").unbind("input").on("input", () => {
+            var query = $("#passcode-query").val().toUpperCase(),
+                index = -1;
+
+            if (query.length >= 3) {
+                // Do a linear search
+                for (var i = 0; i !== passcodeSheet.length; ++i) {
+                    if (passcodeSheet[i][2].startsWith(query)) {
+                        if (index !== -1) {
+                            // Multiple entries found
+                            index = -2;
+                            break;
+                        }
+
+                        index = i;
+                    }
+                }
+
+                if (index === -1) {
+                    // Nothing found
+                    var result = "404";
+                } else if (index === -2) {
+                    // Multiple found
+                    result = "Multiple found";
+                } else {
+                    result = passcodeSheet[index];
+                }
+
+                // Render the result
+                $("#passcode-query-result").html(result);
+            }
+        });
     });
-    WL.login({
-        scope: ["wl.signin" ,"wl.offline_access", "onedrive.readwrite", "onedrive.appfolder"]
-    });
+
+    $("#passcode-fetcher").fadeIn();
+
+
 });
