@@ -3,6 +3,7 @@
 // What to show up in the final result, case SENSITIVE
 var filter = ["eBay"];
 const STATUS_RED_CLASS = "mdl-color-text--red-600";
+const STATUS_GREEN_CLASS = "mdl-color-text--green-500";
 
 /**
  * Set the visitiblity of the progress bar
@@ -352,16 +353,40 @@ $(document).ready(() => {
 
                 if (index === -1) {
                     // Nothing found
-                    var result = "404";
+                    $passcodeStatus.addClass(STATUS_RED_CLASS).text("Not found");
                 } else if (index === -2) {
                     // Multiple found
-                    result = "Multiple found";
+                    $passcodeStatus.removeClass(STATUS_RED_CLASS).text("Multiple found");
                 } else {
-                    result = passcodeSheet[index];
+                    // Found a single one
+                    $passcodeStatus.removeClass(STATUS_RED_CLASS).text("Found");
                 }
 
-                // Render the result
-                $("#passcode-query-result").html(result);
+                // Display the result
+                var result = passcodeSheet[index] || [];
+
+                $("#passcode-query-result").find("td:nth-child(2)").each(function(index) {
+                    var text = result[index],
+                        elemClass;
+
+
+                    if (text === undefined) {
+                        text = "N/A";
+                        elemClass = STATUS_RED_CLASS;
+                    } else if (text === "") {
+                        text = "[Empty]";
+                        elemClass = STATUS_RED_CLASS;
+                    }
+
+                    $(this).removeClass().addClass(elemClass).text(text);
+
+                    // Render the class if hit certain word
+                    if (text === "eBay" ||
+                        !$(this).hasClass(STATUS_RED_CLASS) && $(this).prev().text() === "Redeemed at") {
+                        $(this).addClass(STATUS_GREEN_CLASS);
+                    }
+                });
+
             }
         });
     });

@@ -7,14 +7,25 @@ body.passcode-fetcher {
     body.passcode-fetcher .mdl-card .mdl-card__supporting-text {
       text-align: center;
       align-self: center; }
+    body.passcode-fetcher .mdl-card .mdl-card__actions.mdl-card--center {
+      text-align: center; }
   body.passcode-fetcher .mdl-data-table {
-    width: calc(100% + 17px);
+    width: 557px;
     height: 451px;
     overflow-y: visible;
     overflow-x: hidden;
     display: block; }
     body.passcode-fetcher .mdl-data-table#passcode-history {
       height: 500px; }
+    body.passcode-fetcher .mdl-data-table#passcode-query-result {
+      height: 416px; }
+      body.passcode-fetcher .mdl-data-table#passcode-query-result .emphasis {
+        font-weight: bold; }
+      body.passcode-fetcher .mdl-data-table#passcode-query-result td:first-child {
+        width: 200px; }
+      body.passcode-fetcher .mdl-data-table#passcode-query-result td:last-child {
+        width: 357px;
+        text-align: left; }
     body.passcode-fetcher .mdl-data-table .checkbox-col {
       width: 60px; }
     body.passcode-fetcher .mdl-data-table .type-col {
@@ -30,7 +41,8 @@ body.passcode-fetcher {
       font-family: monospace; }
   body.passcode-fetcher .mdl-progress {
     position: absolute;
-    top: 0; }
+    top: 0;
+    width: 100%; }
 
 .content {
   margin: 25px 0;

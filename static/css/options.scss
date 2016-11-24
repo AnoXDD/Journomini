@@ -1,26 +1,61 @@
+$cardWidth: 540px;
+
+$tableWidth: $cardWidth + 17px;
+$tableQueryFirstColWidth: 200px;
+
+$tableHeight: 451px;
+$tableHistoryHeight: $tableHeight + 49px;
+$tableQueryHeight: $tableHeight - 35px;
+
 body.passcode-fetcher {
   font-family: Roboto;
   overflow: hidden;
 
   .mdl-card {
     min-height: 0;
-    width: 540px;
+    width: $cardWidth;
 
     .mdl-card__supporting-text {
       text-align: center;
       align-self: center;
     }
+
+    .mdl-card__actions {
+      &.mdl-card--center {
+        text-align: center;
+      }
+    }
   }
 
   .mdl-data-table {
-    width: calc(100% + 17px);
-    height: 451px;
+    width: $tableWidth;
+    height: $tableHeight;
     overflow-y: visible;
     overflow-x: hidden;
     display: block;
 
     &#passcode-history {
-      height: 500px;
+      height: $tableHistoryHeight;
+    }
+
+    &#passcode-query-result {
+      height: $tableQueryHeight;
+
+      .emphasis {
+        font-weight: bold;
+      }
+
+      td {
+        &:first-child {
+          width: $tableQueryFirstColWidth;
+        }
+
+        &:last-child {
+          width: $tableWidth - $tableQueryFirstColWidth;
+          text-align: left;
+        }
+      }
+
     }
 
     .checkbox-col {
@@ -50,6 +85,7 @@ body.passcode-fetcher {
   .mdl-progress {
     position: absolute;
     top: 0;
+    width: 100%;
   }
 }
 
