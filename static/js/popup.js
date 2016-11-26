@@ -127,26 +127,15 @@ function debug__addEntryToPasscodeHistory(lineOfPasscode) {
     addEntryToPasscodeHistory(passcode.join('\n'), "00000000000000000", parseInt(Math.random() * 1000) / 100);
 }
 
-$(document).ready(() => {
-    var passcodeSheet;
+function updateTableInformation() {
 
-    setProgressBarVisibility(true);
-
-    $("#passcode-status").removeClass(STATUS_RED_CLASS).text("Fetching ...");
-
-    chrome.runtime.sendMessage({task: "passcodeFetch"}, (response)=> {
-        setProgressBarVisibility(false);
-
-        // Test if fetching is successful
-        if (response.fail) {
-            $("#passcode-status").addClass(STATUS_RED_CLASS).text(response.data);
-            return;
-        }
-
-        passcodeSheet = processRawData(response.data);
-
-        // Process the cards to be shown in the dialog
+    /**
+     * Get eligible cards from passcode sheet
+     * @param passcodeSheet
+     */
+    function getEligibleCards(passcodeSheet) {
         var eligibleCards = {};
+
         for (var i = 0; i !== passcodeSheet.length; ++i) {
             for (var j = 0; j !== filter.length; ++j) {
                 if (passcodeSheet[i].indexOf(filter[j]) !== -1 && !passcodeSheet[i][5].length) {
@@ -163,54 +152,15 @@ $(document).ready(() => {
             }
         }
 
-        // Sort them based on the card type
-        var sortedCards = [];
-        for (var card in eligibleCards) {
-            if (eligibleCards.hasOwnProperty(card)) {
-                sortedCards.push({
-                    type: card,
-                    data: eligibleCards[card]
-                });
-            }
-        }
+        return eligibleCards;
+    }
 
-        sortedCards = sortedCards.sort((lhs, rhs) => {
-            return lhs.type.localeCompare(rhs.type);
-        });
-
-        // Construct DOMs
-        $("#passcode-table").remove();
-        var $list = '<table id="passcode-table" class="mdl-data-table mdl-shadow--2dp">\
-                    <thead><tr>\
-                    <th class="checkbox-col"></th>\
-                    <th class="mdl-data-table__cell--non-numeric type-col">Type</th>\
-                    <th>Quantity</th>\
-                    </tr></thead>\
-                    <tbody>';
-
-        for (i = 0; i !== sortedCards.length; ++i) {
-            type = sortedCards[i].type;
-            var idName = "passcode" + type.replace(/ /g, "-");
-
-            $list +=
-                '<tr>\
-                <td>\
-                    <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect mdl-data-table__select" for="' + idName + '">\
-                            <input type="checkbox" id="' + idName + '" class="mdl-checkbox__input" />\
-                            </label>\
-                        </td>\
-                        <td class="mdl-data-table__cell--non-numeric">' + type + '</td>\
-                        <td>' + sortedCards[i].data.length + '</td></tr>';
-        }
-
-        $list += '</tbody></table>';
-
-        $list = $($list);
-        $list.prependTo("#passcode-table-panel");
-
-        // Append the action bar
+    /**
+     * Append the action bar in the table tab
+     */
+    function appendActionBar() {
         if (!$("#passcode-actions").length) {
-            $list = $(
+            var $list = $(
                 '<div id="passcode-actions" class="mdl-card__actions mdl-card--border" style="min-height: 0;">\
                 <button id="passcode-get" class="mdl-button mdl-js-button mdl-button--icon">\
                     <i class="material-icons">file_download</i>\
@@ -229,6 +179,129 @@ $(document).ready(() => {
 
             $list.insertAfter("#passcode-table");
         }
+    }
+
+    /**
+     * Get sorted cards from eligible cards, by the card type
+     * @param eligibleCards
+     * @returns {Array}
+     */
+    function getSortedCards(eligibleCards) {
+        // Sort them based on the card type
+        var sortedCards = [];
+        for (var card in eligibleCards) {
+            if (eligibleCards.hasOwnProperty(card)) {
+                sortedCards.push({
+                    type: card,
+                    data: eligibleCards[card]
+                });
+            }
+        }
+
+        sortedCards = sortedCards.sort((lhs, rhs) => {
+            return lhs.type.localeCompare(rhs.type);
+        });
+        return sortedCards;
+    }
+
+    /**
+     * Construct the passcode table
+     * @param sortedCards - the data to be translated into table
+     */
+    function constructPasscodeTable(sortedCards) {
+        $("#passcode-table").remove();
+        var $list = '<table id="passcode-table" class="mdl-data-table mdl-shadow--2dp">\
+                    <thead><tr>\
+                    <th class="checkbox-col"></th>\
+                    <th class="mdl-data-table__cell--non-numeric type-col">Type</th>\
+                    <th>Quantity</th>\
+                    </tr></thead>\
+                    <tbody>';
+
+        for (var i = 0; i !== sortedCards.length; ++i) {
+            var type = sortedCards[i].type;
+            var idName = "passcode" + type.replace(/ /g, "-");
+
+            $list +=
+                '<tr>\
+                <td>\
+                    <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect mdl-data-table__select" for="' + idName + '">\
+                            <input type="checkbox" id="' + idName + '" class="mdl-checkbox__input" />\
+                            </label>\
+                        </td>\
+                        <td class="mdl-data-table__cell--non-numeric">' + type + '</td>\
+                        <td>' + sortedCards[i].data.length + '</td></tr>';
+        }
+
+        $list += '</tbody></table>';
+
+        $list = $($list);
+        $list.prependTo("#passcode-table-panel");
+    }
+
+    /**
+     * Get recent redemption history
+     * @param passcodeSheet - the passcode sheet
+     * @param num - the limit of number to be shown on the table
+     */
+    function getRecentHistory(passcodeSheet, num) {
+        num = num || 10;
+
+        var recentHistory = passcodeSheet.sort((lhs, rhs) => {
+            return (Date.parse(lhs || 1000000000000000) || 1000000000000000) - (Date.parse(rhs || 1000000000000000) || 1000000000000000);
+        });
+
+        // Remove element shown as redeemed
+        for (var i = 0; i !== num; ++i) {
+            if (!Date.parse(recentHistory[i][4])) {
+                break;
+            }
+        }
+
+        return recentHistory.slice(0, i);
+    }
+
+    /**
+     * Append the history to the table
+     * @param recentHistory - the recent history
+     */
+    function appendHistoryToTable(recentHistory) {
+        for (var i = 0; i !== recentHistory.length; ++i) {
+            addEntryToPasscodeHistory(recentHistory[i][2], recentHistory[i][6], recentHistory[i][5]);
+        }
+    }
+
+
+    var passcodeSheet;
+
+    setProgressBarVisibility(true);
+
+    $("#passcode-status").removeClass(STATUS_RED_CLASS).text("Fetching ...");
+
+    chrome.runtime.sendMessage({task: "passcodeFetch"}, (response)=> {
+        setProgressBarVisibility(false);
+
+        // Test if fetching is successful
+        if (response.fail) {
+            $("#passcode-status").addClass(STATUS_RED_CLASS).text(response.data);
+            return;
+        }
+
+        passcodeSheet = processRawData(response.data);
+
+        // Update the history
+        var recentHistory = getRecentHistory(passcodeSheet);
+        appendHistoryToTable(recentHistory);
+
+        // Process the cards to be shown in the dialog
+        var eligibleCards = getEligibleCards(passcodeSheet),
+            sortedCards = getSortedCards(eligibleCards);
+
+        // Construct DOMs
+        constructPasscodeTable(sortedCards);
+
+        // Append the action bar
+        appendActionBar();
 
         // Update message
         var $passcodeStatus = $("#passcode-status");
@@ -294,7 +367,7 @@ $(document).ready(() => {
             // Update the passcode sheet
             $.each(indexToBeProcessed, (i, index) => { // `index` is what we want
                 passcodeSheet[index][4] = new Date().toISOString();
-                passcodeSheet[index][5] = total;
+                passcodeSheet[index][5] = (total / indexToBeProcessed.length).toFixed(2);
                 passcodeSheet[index][6] = transactionID;
             });
 
@@ -314,8 +387,6 @@ $(document).ready(() => {
                 passcodeResult = passcodeResult.substr(0, passcodeResult.length - 1);
                 $("#passcode-result").val(passcodeResult);
                 $("#passcode-copy").prop("disabled", false);
-
-                addEntryToPasscodeHistory(passcodeResult, transactionID, total);
 
                 // Refresh the table because something was just changed
                 $("#passcode-start").click();
@@ -392,6 +463,8 @@ $(document).ready(() => {
     });
 
     $("#passcode-fetcher").fadeIn();
+}
 
-
+$(document).ready(() => {
+    updateTableInformation();
 });
