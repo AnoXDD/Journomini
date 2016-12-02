@@ -26,6 +26,13 @@ body.passcode-fetcher {
       body.passcode-fetcher .mdl-data-table#passcode-query-result td:last-child {
         width: 357px;
         text-align: left; }
+    body.passcode-fetcher .mdl-data-table .passcode-query-edit {
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-weight: inherit;
+      width: 100%;
+      outline: none; }
     body.passcode-fetcher .mdl-data-table .checkbox-col {
       width: 60px; }
     body.passcode-fetcher .mdl-data-table .type-col {

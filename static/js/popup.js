@@ -436,24 +436,34 @@ function updateTableInformation() {
                 // Display the result
                 var result = passcodeSheet[index] || [];
 
-                $("#passcode-query-result").find("td:nth-child(2)").each(function(index) {
+                $("#passcode-query-result").find(".passcode-query-edit").each(function(index) {
                     var text = result[index],
+                        placeholder = "",
                         elemClass;
 
 
                     if (text === undefined) {
-                        text = "N/A";
+                        text = "";
+                        placeholder = "N/A";
                         elemClass = STATUS_RED_CLASS;
                     } else if (text === "") {
-                        text = "[Empty]";
+                        text = "";
+                        placeholder = "[Empty]";
                         elemClass = STATUS_RED_CLASS;
                     }
 
-                    $(this).removeClass().addClass(elemClass).text(text);
+                    $(this)
+                        .prop({
+                            class      : "passcode-query-edit",
+                            value      : text,
+                            placeholder: placeholder
+                        })
+                        .addClass(elemClass)
+                        .val(text);
 
                     // Render the class if hit certain word
                     if (text === "eBay" ||
-                        !$(this).hasClass(STATUS_RED_CLASS) && $(this).prev().text() === "Redeemed at") {
+                        !$(this).hasClass(STATUS_RED_CLASS) && $(this).parent().prev().text() === "Redeemed at") {
                         $(this).addClass(STATUS_GREEN_CLASS);
                     }
                 });
