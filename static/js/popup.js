@@ -240,6 +240,33 @@ function updateTableInformation() {
     }
 
     /**
+     * Upload passcode data to the server, with a callback. This function does NOT do any UI change
+     * @param {function} callback - the callback function on success
+     */
+    function uploadPasscodeData(callback) {
+        chrome.runtime.sendMessage({
+            task: "passcodeSave",
+            data: passcodeSheet.join("\n")
+        }, (response) => {
+            if (response.fail) {
+                $passcodeStatus.addClass(STATUS_RED_CLASS)
+                    .text(response.data);
+                setProgressBarVisibility(false);
+                return;
+            }
+
+            // Success!
+            if (typeof callback === "function") {
+                callback();
+            }
+
+            // Refresh the table because something was just changed
+            updateTableInformation();
+        });
+    }
+
+
+    /**
      * Get recent redemption history
      * @param passcodeSheet - the passcode sheet
      * @param num - the limit of number to be shown on the table
@@ -271,12 +298,48 @@ function updateTableInformation() {
         }
     }
 
+    /**
+     * Check for `passcodeQueryIndex` to disable/enable it
+     */
+    function refreshPasscodeQueryEditability() {
+        $(".passcode-query-edit").prop("disabled", passcodeQueryIndex >= 0);
+    }
 
-    var passcodeSheet;
+    var passcodeSheet,
+        passcodeQueryIndex = -1,
+        isNetworkBusy = false;
 
     setProgressBarVisibility(true);
 
     $("#passcode-status").removeClass(STATUS_RED_CLASS).text("Fetching ...");
+
+    $(".passcode-query-edit").each(function(i) {
+        $(this).keypress(function(e) {
+            if (e.which === 13) {
+                if (passcodeQueryIndex >= 0) {
+                    // Change the item
+                    var val = $(this).val();
+
+                    if (passcodeSheet[passcodeQueryIndex][i] != val) {
+                        if (!isNetworkBusy) {
+                            setProgressBarVisibility(true);
+                            isNetworkBusy = true;
+                            $("#passcode-status").text("Updating ...");
+
+                            passcodeSheet[passcodeQueryIndex][i] = val;
+                            uploadPasscodeData(() => {
+                                setProgressBarVisibility(false);
+                                isNetworkBusy = false;
+                                $("#passcode-status").text("Done");
+                            });
+                        }
+                    }
+                }
+                return false;
+            }
+
+        });
+    });
 
     chrome.runtime.sendMessage({task: "passcodeFetch"}, (response)=> {
         setProgressBarVisibility(false);
@@ -372,24 +435,10 @@ function updateTableInformation() {
             });
 
             // Finally, upload it
-            chrome.runtime.sendMessage({
-                task: "passcodeSave",
-                data: passcodeSheet.join("\n")
-            }, (response) => {
-                if (response.fail) {
-                    $passcodeStatus.addClass(STATUS_RED_CLASS)
-                        .text(response.data);
-                    setProgressBarVisibility(false);
-                    return;
-                }
-
-                // Success!
+            uploadPasscodeData(() => {
                 passcodeResult = passcodeResult.substr(0, passcodeResult.length - 1);
                 $("#passcode-result").val(passcodeResult);
                 $("#passcode-copy").prop("disabled", false);
-
-                // Refresh the table because something was just changed
-                $("#passcode-start").click();
             });
         });
 
@@ -405,27 +454,28 @@ function updateTableInformation() {
 
         // Add event listener for querying the passcode
         $("#passcode-query").unbind("input").on("input", () => {
-            var query = $("#passcode-query").val().toUpperCase(),
-                index = -1;
+            var query = $("#passcode-query").val().toUpperCase();
+
+            passcodeQueryIndex = -1;
 
             if (query.length >= 3) {
                 // Do a linear search
                 for (var i = 0; i !== passcodeSheet.length; ++i) {
                     if (passcodeSheet[i][2].startsWith(query)) {
-                        if (index !== -1) {
+                        if (passcodeQueryIndex !== -1) {
                             // Multiple entries found
-                            index = -2;
+                            passcodeQueryIndex = -2;
                             break;
                         }
 
-                        index = i;
+                        passcodeQueryIndex = i;
                     }
                 }
 
-                if (index === -1) {
+                if (passcodeQueryIndex === -1) {
                     // Nothing found
                     $passcodeStatus.addClass(STATUS_RED_CLASS).text("Not found");
-                } else if (index === -2) {
+                } else if (passcodeQueryIndex === -2) {
                     // Multiple found
                     $passcodeStatus.removeClass(STATUS_RED_CLASS).text("Multiple found");
                 } else {
@@ -434,13 +484,12 @@ function updateTableInformation() {
                 }
 
                 // Display the result
-                var result = passcodeSheet[index] || [];
+                var result = passcodeSheet[passcodeQueryIndex] || [];
 
                 $("#passcode-query-result").find(".passcode-query-edit").each(function(index) {
                     var text = result[index],
                         placeholder = "",
                         elemClass;
-
 
                     if (text === undefined) {
                         text = "";
