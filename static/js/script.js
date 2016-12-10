@@ -121,32 +121,36 @@ function loadCssDependencies(dependencies) {
  */
 
 function eBayPreProcessor() {
-    "use strict";
+    var $process = document.createElement("a");
+    $process.style.cssText = "padding: 0 10px 10px;display: block;";
+    $process.setAttribute("href", "javascript:;");
+    $process.innerText = "Process!";
 
-    $(document).ready(function() {
-        var $process = $(
-            '<a style="padding: 0 10px 10px;display: block;" href="javacript:;">Process!</a>');
+    $process.addEventListener("click", function() {
+        // Surround the area
+        var __decode = function(str) {
+            var ret = "";
+            for (var i = 0; i !== str.length; ++i) {
+                ret += String.fromCharCode(str.charCodeAt(i) ^ 3);
+            }
+            return ret;
+        };
 
-        $process.click(function() {
-            // Surround the area
-            var __decode = function(str) {
-                var ret = "";
-                for (var i = 0; i !== str.length; ++i) {
-                    ret += String.fromCharCode(str.charCodeAt(i) ^ 3);
-                }
-                return ret;
-            };
-            $("#msg_cnt_cnt")
-                .val(__decode("Wkbmhp#elq#zlvq#jmwfqfpw-#Kfqf$p#zlvq#`lgf9#		") + $("#msg_cnt_cnt")
-                        .val() + __decode("		Sofbpf#ofbuf#nf#b#slpjwjuf#effgab`h#je#zlv#fmilz-#Kbuf#b#dqfbw#gbz#9*"));
-        }).prependTo($("#CUSubmitForm .tas"));
-
-        // Make the item price changable
-        $("#itemPrice")
-            .replaceWith('$<input onclick="this.select()" id="itemPrice" value="' + $("#itemPrice")
-                    .text()
-                    .substr(1) + '">');
+        var $input = document.getElementById("msg_cnt_cnt");
+        $input.value = __decode("Wkbmhp#elq#zlvq#jmwfqfpw-#Kfqf$p#zlvq#`lgf9#		") +
+            $input.value +
+            __decode("		Sofbpf#ofbuf#nf#b#slpjwjuf#effgab`h#je#zlv#fmilz-#Kbuf#b#dqfbw#gbz#9*");
     });
+
+    var $parent = document.querySelector("#CUSubmitForm .tas");
+    $parent.insertBefore($process, $parent.firstChild);
+
+    // Make the item price changable
+    var $itemPrice = document.getElementById("itemPrice");
+    $itemPrice
+        .outerHTML = '<input onclick="this.select()" id="itemPrice" value="' + $itemPrice
+            .textContent
+            .substr(1) + '">';
 }
 
 function freeFacebook(command) {
@@ -205,7 +209,7 @@ chrome.extension.onMessage.addListener(
     function(request, sender, sendResponse) {
         if (request.method === "fetchActiveTabHtml") {
             sendResponse({
-                data: document.all[0].outerHTML,
+                data  : document.all[0].outerHTML,
                 method: "fetchActiveTabHtml"
             });
         }
