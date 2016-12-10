@@ -201,3 +201,13 @@ function closeTabs() {
     };
 }
 
+chrome.extension.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        if (request.method === "fetchActiveTabHtml") {
+            sendResponse({
+                data: document.all[0].outerHTML,
+                method: "fetchActiveTabHtml"
+            });
+        }
+    }
+);
