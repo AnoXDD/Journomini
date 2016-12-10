@@ -97,17 +97,25 @@ function getTransactionIDandTotalFromPage(document) {
  * @param passcode - The passcode that fetched
  * @param transactionID - the ID of this transaction
  * @param total - the total of this transaction ($34, e.g.)
+ * @param date - the date the passcode was processed
  */
-function addEntryToPasscodeHistory(passcode, transactionID, total) {
+function addEntryToPasscodeHistory(passcode, transactionID, total, date) {
     $("#passcode-history").find("tbody").prepend(
         '<tr class="passcode-history-row">\
-                    <td class="mdl-data-table__cell--non-numeric">' + new Date().toTimeString()
+                    <td class="mdl-data-table__cell--non-numeric">' + new Date(date || Date.now()).toTimeString()
             .substr(0, 8) + '</td>\
                             <td class="mdl-data-table__cell--non-numeric passcode-col">' + passcode + '</td>\
                             <td class="mdl-data-table__cell--non-numeric transaction-id-col">' + transactionID + '</td>\
                             <td>' + total + '</td>\
                             </tr>\
                             ');
+}
+
+/**
+ * Clears the history table
+ */
+function clearHistoryTable() {
+    $("#passcode-history").find("tbody").empty();
 }
 
 /**
@@ -285,7 +293,7 @@ function updateTableInformation() {
         num = num || 10;
 
         var recentHistory = passcodeSheet.sort((lhs, rhs) => {
-            return (Date.parse(lhs || 1000000000000000) || 1000000000000000) - (Date.parse(rhs || 1000000000000000) || 1000000000000000);
+            return (Date.parse(lhs[4] || 1000000000000000) || 1000000000000000) - (Date.parse(rhs[4] || 1000000000000000) || 1000000000000000);
         });
 
         // Remove element shown as redeemed
@@ -304,7 +312,10 @@ function updateTableInformation() {
      */
     function appendHistoryToTable(recentHistory) {
         for (var i = 0; i !== recentHistory.length; ++i) {
-            addEntryToPasscodeHistory(recentHistory[i][2], recentHistory[i][6], recentHistory[i][5]);
+            addEntryToPasscodeHistory(recentHistory[i][2],
+                recentHistory[i][6],
+                recentHistory[i][5],
+                recentHistory[i][4]);
         }
     }
 
@@ -363,6 +374,7 @@ function updateTableInformation() {
         passcodeSheet = processRawData(response.data);
 
         // Update the history
+        clearHistoryTable();
         var recentHistory = getRecentHistory(passcodeSheet);
         appendHistoryToTable(recentHistory);
 
