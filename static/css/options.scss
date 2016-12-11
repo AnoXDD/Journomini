@@ -71,7 +71,9 @@ body.passcode-fetcher {
 
     .passcode-add-textarea {
       resize: none;
-      height:329px;
+      height: 329px;
+      font-family: monospace;
+      text-transform: uppercase;
     }
 
     .checkbox-col {

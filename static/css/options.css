@@ -35,7 +35,9 @@ body.passcode-fetcher {
       outline: none; }
     body.passcode-fetcher .mdl-data-table .passcode-add-textarea {
       resize: none;
-      height: 329px; }
+      height: 329px;
+      font-family: monospace;
+      text-transform: uppercase; }
     body.passcode-fetcher .mdl-data-table .checkbox-col {
       width: 60px; }
     body.passcode-fetcher .mdl-data-table .type-col {

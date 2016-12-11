@@ -102,7 +102,8 @@ function getTransactionIDandTotalFromPage(document) {
 function addEntryToPasscodeHistory(passcode, transactionID, total, date, title) {
     $("#passcode-history").find("tbody").prepend(
         '<tr class="passcode-history-row">\
-                    <td class="mdl-data-table__cell--non-numeric">' + new Date(date || Date.now()).toISOString().substr(0, 16) + '</td>\
+                    <td class="mdl-data-table__cell--non-numeric">' + new Date(date || Date.now()).toISOString()
+            .substr(0, 16) + '</td>\
                             <td class="mdl-data-table__cell--non-numeric passcode-col" title="' + (title || "") + '">' + passcode + '</td>\
                             <td class="mdl-data-table__cell--non-numeric transaction-id-col">' + transactionID + '</td>\
                             <td>' + total + '</td>\
@@ -362,13 +363,76 @@ function updateTableInformation() {
         });
     });
 
+    // In ADD panel, enable go to next input on enter
     $(".passcode-add-input").each(function(i) {
         $(this).keypress(function(e) {
             if (e.which === 13) {
-                
+                // Test if this is textarea because we want to add a new line if it is
+                if (!$(this).hasClass("passcode-add-textarea")) {
+                    // No it's not
+                    $(this).parent().parent().next().children().children().focus();
+                }
             }
         });
-    })
+    });
+
+    // In ADD panel, add the passcode on ctrl+enter
+    $(".passcode-add-textarea").keydown(function(e) {
+        if (e.ctrlKey && e.keyCode === 13) {
+            setProgressBarVisibility(true);
+            $("#passcode-status").removeClass(STATUS_RED_CLASS).text("Uploading new passcode ...");
+
+            // Get the data from UI
+            var anomaly, type, owner, passcode;
+            $(".passcode-add-input").each(function(i) {
+                switch (i) {
+                    case 0:
+                        anomaly = $(this).val();
+                        break;
+                    case 1:
+                        type = $(this).val();
+                        break;
+                    case 2:
+                        owner = $(this).val();
+                        break;
+                    case 3:
+                        passcode = $(this).val().toUpperCase().split('\n');
+                        break;
+                }
+            });
+
+            // Test for validity
+            if (!anomaly || !type || !owner || !passcode || !passcode.length) {
+                setProgressBarVisibility(false);
+                $("#passcode-status").addClass(STATUS_RED_CLASS).text("Missing information");
+                return false;
+            }
+
+            for (var i = 0; i != passcode.length; ++i) {
+                if (passcode[i] || passcode[i].length == 0) {
+                    passcodeSheet.push([
+                        anomaly,
+                        type,
+                        passcode[i],
+                        owner,
+                        "",
+                        "",
+                        "",
+                        new Date().toISOString()
+                    ]);
+                }
+            }
+
+            // Upload it
+            uploadPasscodeData(() => {
+                // Clean the UI to avoid multiple upload
+                $(".passcode-add-input").val("");
+
+                setProgressBarVisibility(false);
+                $("#passcode-status").removeClass(STATUS_RED_CLASS).text("Uploaded");
+            })
+        }
+    });
 
     chrome.runtime.sendMessage({task: "passcodeFetch"}, (response)=> {
         setProgressBarVisibility(false);
