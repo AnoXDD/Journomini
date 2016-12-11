@@ -99,12 +99,11 @@ function getTransactionIDandTotalFromPage(document) {
  * @param total - the total of this transaction ($34, e.g.)
  * @param date - the date the passcode was processed
  */
-function addEntryToPasscodeHistory(passcode, transactionID, total, date) {
+function addEntryToPasscodeHistory(passcode, transactionID, total, date, title) {
     $("#passcode-history").find("tbody").prepend(
         '<tr class="passcode-history-row">\
-                    <td class="mdl-data-table__cell--non-numeric">' + new Date(date || Date.now()).toTimeString()
-            .substr(0, 8) + '</td>\
-                            <td class="mdl-data-table__cell--non-numeric passcode-col">' + passcode + '</td>\
+                    <td class="mdl-data-table__cell--non-numeric">' + new Date(date || Date.now()).toISOString().substr(0, 16) + '</td>\
+                            <td class="mdl-data-table__cell--non-numeric passcode-col" title="' + (title || "") + '">' + passcode + '</td>\
                             <td class="mdl-data-table__cell--non-numeric transaction-id-col">' + transactionID + '</td>\
                             <td>' + total + '</td>\
                             </tr>\
@@ -315,7 +314,8 @@ function updateTableInformation() {
             addEntryToPasscodeHistory(recentHistory[i][2],
                 recentHistory[i][6],
                 recentHistory[i][5],
-                recentHistory[i][4]);
+                recentHistory[i][4],
+                recentHistory[i][1] + " (" + recentHistory[i][0] + ")");
         }
     }
 
