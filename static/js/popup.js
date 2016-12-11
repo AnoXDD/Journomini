@@ -362,6 +362,14 @@ function updateTableInformation() {
         });
     });
 
+    $(".passcode-add-input").each(function(i) {
+        $(this).keypress(function(e) {
+            if (e.which === 13) {
+                
+            }
+        });
+    })
+
     chrome.runtime.sendMessage({task: "passcodeFetch"}, (response)=> {
         setProgressBarVisibility(false);
 

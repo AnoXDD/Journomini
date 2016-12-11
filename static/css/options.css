@@ -15,24 +15,27 @@ body.passcode-fetcher {
     overflow-y: visible;
     overflow-x: hidden;
     display: block; }
-    body.passcode-fetcher .mdl-data-table#passcode-history {
+    body.passcode-fetcher .mdl-data-table#passcode-history, body.passcode-fetcher .mdl-data-table#passcode-add {
       height: 500px; }
     body.passcode-fetcher .mdl-data-table#passcode-query-result {
       height: 416px; }
       body.passcode-fetcher .mdl-data-table#passcode-query-result .emphasis {
         font-weight: bold; }
-      body.passcode-fetcher .mdl-data-table#passcode-query-result td:first-child {
-        width: 200px; }
-      body.passcode-fetcher .mdl-data-table#passcode-query-result td:last-child {
-        width: 357px;
-        text-align: left; }
-    body.passcode-fetcher .mdl-data-table .passcode-query-edit {
+    body.passcode-fetcher .mdl-data-table#passcode-query-result td:first-child, body.passcode-fetcher .mdl-data-table#passcode-add td:first-child {
+      width: 200px; }
+    body.passcode-fetcher .mdl-data-table#passcode-query-result td:last-child, body.passcode-fetcher .mdl-data-table#passcode-add td:last-child {
+      width: 357px;
+      text-align: left; }
+    body.passcode-fetcher .mdl-data-table .passcode-query-edit, body.passcode-fetcher .mdl-data-table .passcode-add-input {
       border: none;
       background: transparent;
       font-family: inherit;
       font-weight: inherit;
       width: 100%;
       outline: none; }
+    body.passcode-fetcher .mdl-data-table .passcode-add-textarea {
+      resize: none;
+      height: 329px; }
     body.passcode-fetcher .mdl-data-table .checkbox-col {
       width: 60px; }
     body.passcode-fetcher .mdl-data-table .type-col {

@@ -16,6 +16,7 @@
                 <a href="#passcode-table-panel" class="mdl-tabs__tab is-active">Table</a>
                 <a href="#passcode-history-panel" class="mdl-tabs__tab">History</a>
                 <a href="#query-panel" class="mdl-tabs__tab">Query</a>
+                <a href="#add-panel" class="mdl-tabs__tab">Add</a>
             </div>
             <div class="mdl-tabs__panel is-active" id="passcode-table-panel"></div>
             <div class="mdl-tabs__panel" id="passcode-history-panel">
@@ -71,6 +72,28 @@
                     <tr>
                         <td>Created</td>
                         <td><input class="passcode-query-edit"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mdl-tabs__panel" id="add-panel">
+                <table id="passcode-add" class="mdl-data-table mdl-shadow--2dp">
+                    <tbody>
+                    <tr>
+                        <td>Anomaly</td>
+                        <td><input class="passcode-add-input"></td>
+                    </tr>
+                    <tr>
+                        <td>Type</td>
+                        <td><input class="passcode-add-input"></td>
+                    </tr>
+                    <tr>
+                        <td>Owner</td>
+                        <td><input class="passcode-add-input"></td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align: top;">Passcode</td>
+                        <td><textarea class="passcode-add-input passcode-add-textarea"></textarea></td>
                     </tr>
                     </tbody>
                 </table>

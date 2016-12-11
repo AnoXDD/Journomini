@@ -34,7 +34,7 @@ body.passcode-fetcher {
     overflow-x: hidden;
     display: block;
 
-    &#passcode-history {
+    &#passcode-history, &#passcode-add {
       height: $tableHistoryHeight;
     }
 
@@ -44,7 +44,9 @@ body.passcode-fetcher {
       .emphasis {
         font-weight: bold;
       }
+    }
 
+    &#passcode-query-result, &#passcode-add {
       td {
         &:first-child {
           width: $tableQueryFirstColWidth;
@@ -58,13 +60,18 @@ body.passcode-fetcher {
 
     }
 
-    .passcode-query-edit {
+    .passcode-query-edit, .passcode-add-input {
       border: none;
       background: transparent;
       font-family: inherit;
       font-weight: inherit;
       width: 100%;
       outline: none;
+    }
+
+    .passcode-add-textarea {
+      resize: none;
+      height:329px;
     }
 
     .checkbox-col {
