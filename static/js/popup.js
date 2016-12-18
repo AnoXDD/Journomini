@@ -622,6 +622,8 @@ function updateTableInformation() {
                         $(this).addClass(STATUS_GREEN_CLASS);
                     }
                 });
+            } else {
+                $(".passcode-query-edit").val("");
             }
         });
     });
