@@ -31,11 +31,13 @@ var lastItemID;
  */
 var scripts = {
     "FreeFacebook"    : {
-        name       : "FreeFacebook", // The name of the script. Must match the key value
+        name       : "FreeFacebook", // The name of the script. Must match the
+                                     // key value
         match      : ["www.facebook.com"], // The website(s) to match
         description: "To remove annoying words on Facebook", // The description
         command    : true, // Accepting commands
-        execute    : "freeFacebook" // The function to be called in `script.js`, do not include `()`
+        execute    : "freeFacebook" // The function to be called in
+                                    // `script.js`, do not include `()`
     },
     "CloseTabs"       : {
         name       : "CloseTabs",
@@ -440,12 +442,20 @@ function onAuthenticated(token, authWindow) {
 chrome.omnibox.onInputChanged.addListener(
     function(text, suggest) {
         suggest([
-            //{
-            //    content: text + " @" + window.location.href,
-            //    description: "Add this website"
-            //},
-            //////  { content: text + " number two", description: "the second
-            // entry" }
+            {
+                content    : "`u",
+                description: "Undo the last bulb"
+            }, {
+                content    : "`c",
+                description: "Clear all the local cache"
+            }, {
+                content    : "`e",
+                description: "Automatically close the Microsoft Login menu"
+            }, {
+                content    : "`d",
+                description: "Disable automatically close the Microsoft" +
+                " Login menu"
+            }
         ]);
     });
 
@@ -463,6 +473,8 @@ chrome.omnibox.onInputEntered.addListener(
 
 /**
  * Processes a command
+ * Whenever a new command is added, do not forget to update the listener
+ * above
  * @param {string} cmd - a command to be processed, without $
  */
 function processCommand(cmd) {
@@ -508,7 +520,8 @@ function signin(initiated) {
 
 /**
  * Signs in or refresh token
- * @param {function} callbackOnSuccess - the callback function when it gets the token
+ * @param {function} callbackOnSuccess - the callback function when it gets the
+ *     token
  */
 function signInOrRefreshToken(callbackOnSuccess) {
     var initiated = false;
@@ -538,8 +551,31 @@ function signInOrRefreshToken(callbackOnSuccess) {
  */
 function saveChanges(value) {
     // Check if we have refresh_token
-    signInOrRefreshToken((token)=> {
-        uploadFileBulb(value, token);
+    signInOrRefreshToken((token) => {
+
+        navigator.geolocation.getCurrentPosition((e)=> {
+            var latitude = e.coords.latitude,
+                longitude = e.coords.longitude,
+                locationArray = [latitude, longitude];
+
+            $.ajax({
+                type: "GET",
+                url : "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + latitude + "," + longitude + "&key=AIzaSyBlGNER0WjTkyMuyJQKN73H3vYkrbtXIXU"
+            }).done((data) => {
+                if (data && data.results && data.results[0]) {
+                    var address = data.results[0]["formatted_address"];
+                    // Push to the front of the array
+                    locationArray.splice(0, 0, address);
+                }
+                uploadFileBulb(value, token, locationArray)
+            }).fail(() => {
+                // The data was not fetched
+                uploadFileBulb(value, token, locationArray);
+            })
+        }, () => {
+            // Failed
+            uploadFileBulb(value, token);
+        });
     });
 }
 
@@ -547,9 +583,10 @@ function saveChanges(value) {
  * Uploads journal.archive.data to OneDrive and creates a backup
  * @param {string} data - The data to be uploaded
  * @param {string} token - a valid token
+ * @param {Array} locationArray - an array of current location
  * @param {function()} callback - what to do after everything is done
  */
-function uploadFileBulb(data, token, callback) {
+function uploadFileBulb(data, token, locationArray, callback) {
     var d = new Date(),
         month = d.getMonth() + 1,
         day = d.getDate(),
@@ -564,6 +601,11 @@ function uploadFileBulb(data, token, callback) {
     minute = minute < 10 ? "0" + minute : minute;
     second = second < 10 ? "0" + second : second;
     var fileName = "" + month + day + year + "_" + hour + minute + second;
+
+    // Process the location array
+    if (locationArray && (locationArray.length === 2 || locationArray.length === 3)) {
+        data += " #[" + locationArray.toString() + "]";
+    }
 
     $.ajax({
             type       : "PUT",
@@ -854,7 +896,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
             });
         });
-    } 
+    }
 
     return true;
 });
