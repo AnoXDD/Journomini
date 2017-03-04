@@ -1,6 +1,6 @@
 // Watches for the Live Login Popup to store token and closes the window.
 window.addEventListener("load", function() {
-    console.log("Loading my scripts");
+    console.log("Loading scripts from Journomini");
 
     chrome.storage.local.get("enable", function(result) {
         if (result.enable == "enable") {
@@ -153,15 +153,63 @@ function eBayPreProcessor() {
             .substr(1) + '">';
 }
 
+
+/**
+ * This is used as default words to be filtered out
+ * @type {string}
+ */
+var filterAdWords = "suggested post,sponsored,trump,hillary,politics,imwithher";
+
 function freeFacebook(command) {
     function __plugin_removeAnnoyingStuffs() {
         console.log("FreeFacebook activated");
-        var keywords = (command || "suggested post,trump,hillary,politics,imwithher")
+        var keywords = (command || filterAdWords)
             .split(",");
 
         // Yeah I know it's ugly. But so what? It fucking works!
         setInterval(() => {
             var contents = document.getElementsByClassName("userContentWrapper");
+
+            for (var i = 0; i !== contents.length; ++i) {
+                var item = contents.item(i);
+                for (var j = 0; j !== keywords.length; ++j) {
+                    var re = new RegExp(keywords[j], "i");
+                    if (item.textContent.match(re)) {
+                        var frame = contents.item(i).parentNode.parentNode.parentNode;
+                        frame.parentNode.removeChild(frame);
+                        --i;
+                        console.log("An annoying stuff has been removed");
+                    }
+                }
+            }
+        }, 1000);
+    }
+
+    /**
+     * $(document).ready(() =>)
+     */
+    function __plugin_ready(f) {
+        if (document.readyState !== "loading") {
+            f();
+        } else {
+            document.addEventListener("DOMContentLoaded", f);
+        }
+    }
+
+    __plugin_ready(__plugin_removeAnnoyingStuffs);
+}
+
+function freeGooglePlus(command) {
+    "use strict";
+
+    function __plugin_removeAnnoyingStuffs() {
+        console.log("FreeGooglePlus activated");
+        var keywords = (command || filterAdWords)
+            .split(",");
+
+        // Yeah I know it's ugly. But so what? It fucking works!
+        setInterval(() => {
+            var contents = document.getElementsByClassName("V2SCpf");
 
             for (var i = 0; i !== contents.length; ++i) {
                 var item = contents.item(i);

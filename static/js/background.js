@@ -52,6 +52,13 @@ var scripts = {
         description: "Preprocess eBay message to make my passcode fetcher work",
         command    : false,
         execute    : "eBayPreProcessor",
+    },
+    "FreeGooglePlus"  : {
+        name       : "FreeGooglePlus",
+        match      : ["plus.google.com"],
+        description: "To remove annoying words on Google+",
+        command    : true,
+        execute    : "freeGooglePlus"
     }
 };
 
@@ -455,6 +462,9 @@ chrome.omnibox.onInputChanged.addListener(
                 content    : "`d",
                 description: "Disable automatically close the Microsoft" +
                 " Login menu"
+            }, {
+                content    : "`a",
+                description: "Set a fixed location on this device"
             }
         ]);
     });
@@ -491,8 +501,45 @@ function processCommand(cmd) {
         sendNotification("Command", "All local data memory is cleared");
     } else if (cmd == "u" || cmd === "undo") {
         undoBulb();
+    } else if (cmd == "a" || cmd.startsWith("a ")) {
+        attemptSetAddress(cmd);
     } else {
         sendNotification("Command", "Unknown command");
+    }
+}
+
+/**
+ * Attempts to set the address
+ * @param cmd - the raw input, starting with 'a '. If the cmd is just 'a ', the
+ *     address will be removed
+ */
+function attemptSetAddress(cmd) {
+    // Filter out "a "
+    cmd = cmd.substr(2);
+    if (cmd.length) {
+        // Validate it
+        var arr = cmd.substr(2).split(" ");
+        if (arr.length == 2) {
+            // Do implicit conversion here to make sure they are both valid
+            // numbers
+            if (parseFloat(arr[0]) == arr[0] && parseFloat(arr[1]) == arr[1]) {
+                chrome.storage.local.set({"address": cmd});
+                sendNotification("Command",
+                    `Local coordinate is set to ${cmd}`);
+                return;
+            }
+        }
+
+        chrome.storage.local.get("address", (data) => {
+            sendNotification("Error",
+                `Unable to set new coordinates. The old address is ${JSON.stringify(
+                    data.address)}`);
+        });
+    } else {
+        // Remove it
+        chrome.storage.local.set({"address": ""});
+
+        sendNotification("Command", "Local coordinate is removed");
     }
 }
 
@@ -553,28 +600,52 @@ function saveChanges(value) {
     // Check if we have refresh_token
     signInOrRefreshToken((token) => {
 
-        navigator.geolocation.getCurrentPosition((e)=> {
-            var latitude = e.coords.latitude,
-                longitude = e.coords.longitude,
-                locationArray = [latitude, longitude];
-
-            $.ajax({
-                type: "GET",
-                url : "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + latitude + "," + longitude + "&key=AIzaSyBlGNER0WjTkyMuyJQKN73H3vYkrbtXIXU"
-            }).done((data) => {
-                if (data && data.results && data.results[0]) {
-                    var address = data.results[0]["formatted_address"];
-                    // Push to the front of the array
-                    locationArray.splice(0, 0, address);
+        chrome.storage.local.get("address", (address) => {
+            // Get the current position anyways
+            navigator.geolocation.getCurrentPosition((e)=> {
+                var locationArray = [];
+                
+                if (address && address.address) {
+                    // Convert from the object
+                    address = address.address;
+                    // Try to validate it
+                    locationArray = address.split(" ");
+                    if (!(locationArray.length === 2 &&
+                        locationArray[0] == parseFloat(locationArray[0]) &&
+                        locationArray[1] == parseFloat(locationArray[1]))) {
+                        locationArray = [];
+                    } else {
+                        var latitude = locationArray[0],
+                            longitude = locationArray[1];
+                    }
                 }
-                uploadFileBulb(value, token, locationArray)
-            }).fail(() => {
-                // The data was not fetched
-                uploadFileBulb(value, token, locationArray);
-            })
-        }, () => {
-            // Failed
-            uploadFileBulb(value, token);
+
+                // If address is invalid, use current address
+                if (!locationArray.length) {
+                    latitude = e.coords.latitude;
+                    longitude = e.coords.longitude;
+
+                    locationArray = [latitude, longitude];
+                }
+
+                $.ajax({
+                    type: "GET",
+                    url : "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + latitude + "," + longitude + "&key=AIzaSyBlGNER0WjTkyMuyJQKN73H3vYkrbtXIXU"
+                }).done((data) => {
+                    if (data && data.results && data.results[0]) {
+                        var address = data.results[0]["formatted_address"];
+                        // Push to the front of the array
+                        locationArray.splice(0, 0, address);
+                    }
+                    uploadFileBulb(value, token, locationArray)
+                }).fail(() => {
+                    // The data was not fetched
+                    uploadFileBulb(value, token, locationArray);
+                })
+            }, () => {
+                // Failed
+                uploadFileBulb(value, token);
+            });
         });
     });
 }
@@ -606,6 +677,9 @@ function uploadFileBulb(data, token, locationArray, callback) {
     if (locationArray && (locationArray.length === 2 || locationArray.length === 3)) {
         data += " #[" + locationArray.toString() + "]";
     }
+
+    alert(data);
+    return;
 
     $.ajax({
             type       : "PUT",
