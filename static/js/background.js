@@ -362,10 +362,7 @@ function refreshToken(callback) {
                     var token = data["access_token"],
                         refresh = data["refresh_token"],
                         expiry = parseInt(data["expires_in"]);
-                    chrome.storage.local.set({
-                        token  : token,
-                        refresh: refresh
-                    });
+                    setToken(refresh, token);
                     if (typeof (callback) === "function") {
                         callback(token);
                     }
@@ -379,6 +376,34 @@ function refreshToken(callback) {
         }
     })
 
+}
+
+/**
+ * Sets the token of refresh_token and current token, both in the plug in and
+ * in some specific website
+ * @param refresh
+ * @param token
+ */
+function setToken(refresh, token) {
+    chrome.storage.local.set({
+        token  : token,
+        refresh: refresh
+    });
+    setTokenInCookies(token);
+}
+
+/**
+ * Sets the cookie in specific website, e.g. journoxic
+ * @param token
+ */
+function setTokenInCookies(token) {
+    chrome.cookies.set({
+        url  : "http://anoxic.me",
+        name : "odauth",
+        value: token
+    }, () => {
+        console.log("New token has been fetched");
+    });
 }
 
 function getAppInfo() {
@@ -604,7 +629,7 @@ function saveChanges(value) {
             // Get the current position anyways
             navigator.geolocation.getCurrentPosition((e)=> {
                 var locationArray = [];
-                
+
                 if (address && address.address) {
                     // Convert from the object
                     address = address.address;
@@ -973,3 +998,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 // endregion
+
+// Recursively update the refresh token every half an hour
+refreshToken();
+setInterval(() => {
+    refreshToken();
+}, 1800000);
