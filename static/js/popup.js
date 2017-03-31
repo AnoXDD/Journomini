@@ -100,7 +100,7 @@ function getTransactionIDandTotalFromPage(document) {
  * @param date - the date the passcode was processed
  */
 function addEntryToPasscodeHistory(passcode, transactionID, total, date, title) {
-    $("#passcode-history").find("tbody").prepend(
+    $("#passcode-history").find("tbody").append(
         '<tr class="passcode-history-row">\
                     <td class="mdl-data-table__cell--non-numeric">' + new Date(date || Date.now()).toISOString()
             .substr(0, 16) + '</td>\
@@ -290,10 +290,10 @@ function updateTableInformation() {
      * @param num - the limit of number to be shown on the table
      */
     function getRecentHistory(passcodeSheet, num) {
-        num = num || 10;
+        num = num || 50;
 
         var recentHistory = passcodeSheet.sort((lhs, rhs) => {
-            return (Date.parse(lhs[4] || 1000000000000000) || 1000000000000000) - (Date.parse(rhs[4] || 1000000000000000) || 1000000000000000);
+            return (Date.parse(rhs[4] || 0) || 0) - (Date.parse(lhs[4] || 0) || 0);
         });
 
         // Remove element shown as redeemed
