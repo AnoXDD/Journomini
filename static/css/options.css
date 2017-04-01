@@ -1,6 +1,12 @@
 body.passcode-fetcher {
   font-family: Roboto;
   overflow: hidden; }
+  body.passcode-fetcher #passcode-amount {
+    display: inline-block;
+    position: relative;
+    top: 1px;
+    width: 30px;
+    text-align: center; }
   body.passcode-fetcher .mdl-card {
     min-height: 0;
     width: 540px; }
