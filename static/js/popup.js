@@ -212,8 +212,8 @@ function updateTableInformation() {
                 <button id="passcode-copy" class="mdl-button mdl-js-button mdl-button--icon" disabled>\
                     <i class="material-icons">content_copy</i>\
                 </button>\
-                <div class="mdl-textfield mdl-js-textfield" style="position: absolute; right: 3px; bottom: -9px; width: 200px; resize: none; " readonly>\
-                    <textarea class="mdl-textfield__input" type="text" rows= "1" id="passcode-result" style="resize: none; font-family: Roboto; font-size: 12px; " readonly></textarea>\
+                <div class="mdl-textfield mdl-js-textfield passcode-result-wrapper">\
+                    <textarea class="mdl-textfield__input" type="text" rows= "1" id="passcode-result" readonly></textarea>\
                     <label class="mdl-textfield__label" for="passcode-result" style="font-family: Roboto"></label>\
                 </div>\
                 </div>');

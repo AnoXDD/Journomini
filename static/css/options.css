@@ -7,6 +7,16 @@ body.passcode-fetcher {
     top: 1px;
     width: 30px;
     text-align: center; }
+  body.passcode-fetcher #passcode-result {
+    resize: none;
+    font-family: Roboto;
+    font-size: 12px; }
+  body.passcode-fetcher .passcode-result-wrapper {
+    position: absolute;
+    right: 3px;
+    bottom: 0;
+    width: 200px;
+    resize: none; }
   body.passcode-fetcher .mdl-card {
     min-height: 0;
     width: 540px; }

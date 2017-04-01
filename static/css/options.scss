@@ -19,6 +19,20 @@ body.passcode-fetcher {
     text-align: center;
   }
 
+  #passcode-result {
+    resize: none;
+    font-family: Roboto;
+    font-size: 12px;
+  }
+
+  .passcode-result-wrapper {
+    position: absolute;
+    right: 3px;
+    bottom: 0;
+    width: 200px;
+    resize: none;
+  }
+
   .mdl-card {
     min-height: 0;
     width: $cardWidth;
