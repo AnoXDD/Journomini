@@ -166,6 +166,9 @@ function freeFacebook(command) {
         var keywords = (command || filterAdWords)
             .split(",");
 
+        // Remove the sidebar ads
+        document.getElementById("pagelet_ego_pane").style.display = "none";
+
         // Yeah I know it's ugly. But so what? It fucking works!
         setInterval(() => {
             var contents = document.getElementsByClassName("userContentWrapper");
@@ -216,7 +219,7 @@ function freeGooglePlus(command) {
                 for (var j = 0; j !== keywords.length; ++j) {
                     var re = new RegExp(keywords[j], "i");
                     if (item.textContent.match(re)) {
-                        var frame = contents.item(i).parentNode.parentNode.parentNode;
+                        var frame = contents.item(i);
                         frame.parentNode.removeChild(frame);
                         --i;
                         console.log("An annoying stuff has been removed");
