@@ -171,7 +171,7 @@ function freeFacebook(command) {
 
         // Yeah I know it's ugly. But so what? It fucking works!
         setInterval(() => {
-            var contents = document.getElementsByClassName("userContentWrapper");
+            var contents = document.getElementsByClassName("fbUserContent");
 
             for (var i = 0; i !== contents.length; ++i) {
                 var item = contents.item(i);
