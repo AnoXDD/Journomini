@@ -42,7 +42,9 @@ window.addEventListener("load", function() {
                 // Test if the address matches
                 for (var i = 0; i !== value.match.length; ++i) {
                     var match = value.match[i];
-                    var regex = new RegExp(match.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+                    var regex = new RegExp(match.replace(
+                        /[-\/\\^$*+?.()|[\]{}]/g,
+                        '\\$&'));
                     if (address.match(regex)) {
                         // Add to the queue
                         matchedNames.push(name);
@@ -139,7 +141,8 @@ function eBayPreProcessor() {
         var $input = document.getElementById("msg_cnt_cnt");
         $input.value = __decode("Wkbmhp#elq#zlvq#jmwfqfpw-#Kfqf$p#zlvq#`lgf9#		") +
             $input.value +
-            __decode("		Sofbpf#ofbuf#nf#b#slpjwjuf#effgab`h#je#zlv#fmilz-#Kbuf#b#dqfbw#gbz#9*");
+            __decode(
+                "		Sofbpf#ofbuf#nf#b#slpjwjuf#effgab`h#je#zlv#fmilz-#Kbuf#b#dqfbw#gbz#9*");
     });
 
     var $parent = document.querySelector("#CUSubmitForm .tas");
@@ -244,13 +247,21 @@ function freeGooglePlus(command) {
 }
 
 // Send messages for closing the tabs
-function closeTabs() {
+function betterTabs() {
     document.onkeydown = function(e) {
         if (e.ctrlKey && e.altKey) {
             if (e.keyCode == 65) {
+                // A
                 chrome.runtime.sendMessage({task: "closeLeftTabs"});
             } else if (e.keyCode == 68) {
+                // D
                 chrome.runtime.sendMessage({task: "closeRightTabs"});
+            } else if (e.keyCode >= 48 && e.keyCode <= 57) {
+                // 0 ~ 9
+                chrome.runtime.sendMessage({
+                    task: "reallocateTab",
+                    data: (e.keyCode - 49)
+                });
             }
         }
     };

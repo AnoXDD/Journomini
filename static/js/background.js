@@ -39,12 +39,12 @@ var scripts = {
         execute    : "freeFacebook" // The function to be called in
                                     // `script.js`, do not include `()`
     },
-    "CloseTabs"       : {
-        name       : "CloseTabs",
+    "BetterTabs"       : {
+        name       : "BetterTabs",
         match      : ["."], // match every site!
-        description: "Close left or right tabs",
+        description: "Improve the functions of tabs, including shortcuts to close left or right tabs and move tab around",
         command    : false,
-        execute    : "closeTabs"
+        execute    : "betterTabs"
     },
     "eBayPreProcessor": {
         name       : "eBayPreProcessor",
@@ -792,10 +792,12 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         return;
     }
 
-    if (request.task == "closeLeftTabs") {
+    if (request.task == "closeLeftFTabs") {
         closeLeftTabs(sender.tab);
     } else if (request.task == "closeRightTabs") {
         closeRightTabs(sender.tab);
+    } else if (request.task === "reallocateTab") {
+        reallocateTab(sender.tab, request.data);
     }
 });
 
@@ -821,6 +823,13 @@ function closeRightTabs(tab) {
             }
         });
     });
+}
+
+function reallocateTab(tab, data) {
+    console.log(data);
+    if (data || data === 0) {
+        chrome.tabs.move(tab.id, {index: data});
+    }
 }
 
 // endregion
