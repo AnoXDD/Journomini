@@ -792,7 +792,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         return;
     }
 
-    if (request.task == "closeLeftFTabs") {
+    if (request.task == "closeLeftTabs") {
         closeLeftTabs(sender.tab);
     } else if (request.task == "closeRightTabs") {
         closeRightTabs(sender.tab);
@@ -826,7 +826,6 @@ function closeRightTabs(tab) {
 }
 
 function reallocateTab(tab, data) {
-    console.log(data);
     if (data || data === 0) {
         chrome.tabs.move(tab.id, {index: data});
     }
