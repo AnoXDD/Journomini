@@ -705,7 +705,7 @@ function uploadFileBulb(data, token, locationArray, callback) {
 
     $.ajax({
             type       : "PUT",
-            url        : "https://api.onedrive.com/v1.0/drive/root:/Apps/Journal/bulb/" + fileName + ":/content?access_token=" + token,
+            url        : "https://api.onedrive.com/v1.0/drive/root:/Apps/Trak/bulb/" + fileName + ":/content?access_token=" + token,
             contentType: "text/plain",
             data       : data
         })

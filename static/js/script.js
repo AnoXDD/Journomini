@@ -4,7 +4,7 @@ window.addEventListener("load", function() {
 
     chrome.storage.local.get("enable", function(result) {
         if (result.enable == "enable") {
-            if (window.location.origin + window.location.pathname == "http://anoxic.me/journal/callbackJournomini.html") {
+            if (window.location.origin + window.location.pathname == "https://anoxic.me/journal/callbackJournomini.html") {
                 var search = window.location.search;
                 // Get refresh token
                 var prefix = "?code=";
