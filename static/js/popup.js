@@ -241,7 +241,7 @@ function updateTableInformation() {
     }
 
     sortedCards = sortedCards.sort((lhs, rhs) => {
-      return (rhs.data == lhs.data) ? lhs.data.localeCompare(rhs.data) : (rhs - lhs);
+      return (rhs.data.length === lhs.data.length) ? lhs.type.localeCompare(rhs.type) : (rhs.data.length - lhs.data.length);
     });
     return sortedCards;
   }
