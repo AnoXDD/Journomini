@@ -246,6 +246,9 @@ function freeGooglePlus(command) {
   __plugin_ready(__plugin_removeAnnoyingStuffs);
 }
 
+let lastPushedBulb = "";
+const bulbStartsWith = "## ";
+
 function cleanMessenger(command) {
   "use strict";
 
@@ -263,10 +266,31 @@ function cleanMessenger(command) {
         for (var j = 0; j !== keywords.length; ++j) {
           var re = new RegExp(keywords[j], "ig");
           if (item.textContent.match(re)) {
-            text = text.replace(re, `<span style="filter:blur(6px);opacity:0.2">${keywords[j]}</\span>`);
+            text = text.replace(re,
+                `<span style="filter:blur(6px);opacity:0.2">${keywords[j]}</\span>`);
           }
         }
-        item.innerHTML = text;
+        if (text !== item.innerHTML) {
+          item.innerHTML = text;
+        }
+      }
+
+      // Push the last bulb if ends with
+      if (contents.length) {
+        let lastItem = contents.item(contents.length - 1);
+        if (lastItem.parentNode.parentNode.getAttribute("data-tooltip-position") === "right") {
+          // It's on the right side, sent by me
+          let text = lastItem.innerText;
+          if (text.startsWith(bulbStartsWith)) {
+            if (lastPushedBulb !== text) {
+              lastPushedBulb = text;
+              chrome.runtime.sendMessage({
+                task: "pushBulb",
+                body: text.substr(bulbStartsWith.length)
+              });
+            }
+          }
+        }
       }
     }, 1000);
   }

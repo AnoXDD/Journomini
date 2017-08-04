@@ -502,16 +502,31 @@ chrome.omnibox.onInputChanged.addListener(
     });
 
 // This event is fired with the user accepts the input in the omnibox.
-chrome.omnibox.onInputEntered.addListener(
-    function(text) {
-      if (text.startsWith("`")) {
-        // This is a command
-        processCommand(text.substr(1));
-      } else {
-        saveChanges(text);
-      }
-    });
+chrome.omnibox.onInputEntered.addListener(text => {
+      processRawBulbInput(text);
+    }
+);
 
+chrome.runtime.onMessage.addListener(
+    request => {
+      if (request.task === "pushBulb") {
+        processRawBulbInput(request.body);
+      }
+    }
+);
+
+/**
+ * The first function to be called to process raw bulb input
+ * @param text
+ */
+function processRawBulbInput(text) {
+  if (text.startsWith("`")) {
+    // This is a command
+    processCommand(text.substr(1));
+  } else {
+    saveChanges(text);
+  }
+}
 
 /**
  * Processes a command
