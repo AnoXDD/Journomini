@@ -24,17 +24,19 @@ var lastItemID;
  * What to do if you want to add more scripts to be loaded:
  * 1) add appropriate info below
  * 2) in script.js, add a function to execute.
- *    If `command` is set to true, don't forget to have a `command` param
+ *    If `command` is set to true, don't forget to have a `command`
+ * param
  *
  * *****
  * @type {Array}
  */
 var scripts = {
   "FreeFacebook"    : {
-    name       : "FreeFacebook", // The name of the script. Must match the
-                                 // key value
+    name       : "FreeFacebook", // The name of the script. Must
+                                 // match the key value
     match      : ["www.facebook.com"], // The website(s) to match
-    description: "To remove annoying words on Facebook", // The description
+    description: "To remove annoying words on Facebook", // The
+                                                         // description
     command    : true, // Accepting commands
     execute    : "freeFacebook" // The function to be called in
                                 // `script.js`, do not include `()`
@@ -70,13 +72,13 @@ var scripts = {
 };
 
 var DefaultSettings = {
-      'active'        : true,
-      /////////////////// If the login url changes, update this url
-      'urls'          : ['*://login.live.com/*'],
-      'exposedHeaders': '',
-      'Origin'        : 'http://evil.com/'
-    },
-    accessControlRequests = {};
+    'active'        : true,
+    /////////////////// If the login url changes, update this url
+    'urls'          : ['*://login.live.com/*'],
+    'exposedHeaders': '',
+    'Origin'        : 'http://evil.com/'
+  },
+  accessControlRequests = {};
 
 var exposedHeaders;
 
@@ -233,33 +235,35 @@ var responseListener = function(details) {
 var reload = function() {
   console.info("reload");
   chrome.storage.local.get(DefaultSettings,
-      function(result) {
-        exposedHeaders = result.exposedHeaders;
-        console.info("get localStorage", result);
+    function(result) {
+      exposedHeaders = result.exposedHeaders;
+      console.info("get localStorage", result);
 
-        /*Remove Listeners*/
-        chrome.webRequest.onHeadersReceived.removeListener(responseListener);
-        chrome.webRequest.onBeforeSendHeaders.removeListener(requestListener);
+      /*Remove Listeners*/
+      chrome.webRequest.onHeadersReceived.removeListener(
+        responseListener);
+      chrome.webRequest.onBeforeSendHeaders.removeListener(
+        requestListener);
 
-        if (result.active) {
-          if (result.urls.length) {
-            /*Add Listeners*/
-            chrome.webRequest.onHeadersReceived.addListener(
-                responseListener,
-                {
-                  urls: result.urls
-                },
-                ['blocking', 'responseHeaders']);
+      if (result.active) {
+        if (result.urls.length) {
+          /*Add Listeners*/
+          chrome.webRequest.onHeadersReceived.addListener(
+            responseListener,
+            {
+              urls: result.urls
+            },
+            ['blocking', 'responseHeaders']);
 
-            chrome.webRequest.onBeforeSendHeaders.addListener(
-                requestListener,
-                {
-                  urls: result.urls
-                },
-                ['blocking', 'requestHeaders']);
-          }
+          chrome.webRequest.onBeforeSendHeaders.addListener(
+            requestListener,
+            {
+              urls: result.urls
+            },
+            ['blocking', 'requestHeaders']);
         }
-      });
+      }
+    });
 };
 
 /*On install*/
@@ -304,7 +308,7 @@ function onAuthCallback(code) {
   }).done(function(data, status, xhr) {
     // Try to get the access token and expiry
     var token = data["access_token"],
-        refresh = data["refresh_token"];
+      refresh = data["refresh_token"];
     chrome.storage.local.set({
       token  : token,
       refresh: refresh
@@ -318,11 +322,11 @@ function getAuthInfoFromUrl() {
   if (window.location.search) {
     var authResponse = window.location.search.substring(1);
     var authInfo = JSON.parse(
-        "{\"" + authResponse.replace(/&/g, "\",\"")
-            .replace(/=/g, "\":\"") + "\"}",
-        function(key, value) {
-          return key === "" ? value : decodeURIComponent(value);
-        });
+      "{\"" + authResponse.replace(/&/g, "\",\"")
+        .replace(/=/g, "\":\"") + "\"}",
+      function(key, value) {
+        return key === "" ? value : decodeURIComponent(value);
+      });
     return authInfo;
   } else {
     sendNotification("Error", "failed to receive auth token");
@@ -330,10 +334,12 @@ function getAuthInfoFromUrl() {
 }
 
 /**
- * Gets the local storage component of this extension specifying the name
+ * Gets the local storage component of this extension specifying the
+ * name
  * @param {string} name - the name to be searched
- * @param {function} callback - the callback function after retrieving is done,
- *     taking a paramter which is not undefined if the key is valid
+ * @param {function} callback - the callback function after
+ *   retrieving is done, taking a paramter which is not undefined if
+ *   the key is valid
  */
 function getFromStorage(name, callback) {
   chrome.storage.local.get(name, function(result) {
@@ -342,10 +348,11 @@ function getFromStorage(name, callback) {
 }
 
 /**
- * Refreshes the token to get a new access token, then call the callback
- * @param {function} callback - A callback function that can have a parameter
- *     to handle the ACCESS TOKEN passed in. This function will only be called
- *     if the token is successfully refreshed
+ * Refreshes the token to get a new access token, then call the
+ * callback
+ * @param {function} callback - A callback function that can have a
+ *   parameter to handle the ACCESS TOKEN passed in. This function
+ *   will only be called if the token is successfully refreshed
  */
 function refreshToken(callback) {
   getFromStorage("refresh", function(refresh) {
@@ -365,29 +372,30 @@ function refreshToken(callback) {
         refresh +
         "&grant_type=refresh_token"
       })
-          .done(function(data, status, xhr) {
-            var token = data["access_token"],
-                refresh = data["refresh_token"],
-                expiry = parseInt(data["expires_in"]);
-            setToken(refresh, token);
-            if (typeof (callback) === "function") {
-              callback(token);
-            }
-          })
-          .fail(function() {
-            sendNotification("Error",
-                "Unable to get `access_token`, try again.")
-          });
+        .done(function(data, status, xhr) {
+          var token = data["access_token"],
+            refresh = data["refresh_token"],
+            expiry = parseInt(data["expires_in"]);
+          setToken(refresh, token);
+          if (typeof (callback) === "function") {
+            callback(token);
+          }
+        })
+        .fail(function() {
+          sendNotification("Error",
+            "Unable to get `access_token`, try again.")
+        });
     } else {
-      sendNotification("Error", "Unable to get `refresh`, try re-signin");
+      sendNotification("Error",
+        "Unable to get `refresh`, try re-signin");
     }
   })
 
 }
 
 /**
- * Sets the token of refresh_token and current token, both in the plug in and
- * in some specific website
+ * Sets the token of refresh_token and current token, both in the
+ * plug in and in some specific website
  * @param refresh
  * @param token
  */
@@ -427,22 +435,22 @@ function getAppInfo() {
 function challengeForAuth() {
   var appInfo = getAppInfo();
   var url =
-      "https://login.live.com/oauth20_authorize.srf" +
-      "?client_id=" + appInfo.clientId +
-      "&scope=" + encodeURIComponent(appInfo.scopes) +
-      "&response_type=code" +
-      "&redirect_uri=" + encodeURIComponent(appInfo.redirectUri);
+    "https://login.live.com/oauth20_authorize.srf" +
+    "?client_id=" + appInfo.clientId +
+    "&scope=" + encodeURIComponent(appInfo.scopes) +
+    "&response_type=code" +
+    "&redirect_uri=" + encodeURIComponent(appInfo.redirectUri);
   console.log(url);
   popup(url);
 }
 
 function popup(url) {
   var width = 525,
-      height = 525,
-      screenX = window.screenX,
-      screenY = window.screenY,
-      outerWidth = window.outerWidth,
-      outerHeight = window.outerHeight;
+    height = 525,
+    screenX = window.screenX,
+    screenY = window.screenY,
+    outerWidth = window.outerWidth,
+    outerHeight = window.outerHeight;
 
   var left = screenX + Math.max(outerWidth - width, 0) / 2;
   var top = screenY + Math.max(outerHeight - height, 0) / 2;
@@ -476,43 +484,43 @@ function onAuthenticated(token, authWindow) {
 
 // My original code
 
-// This event is fired each time the user updates the text in the omnibox,
-// as long as the extension's keyword mode is still active.
+// This event is fired each time the user updates the text in the
+// omnibox, as long as the extension's keyword mode is still active.
 chrome.omnibox.onInputChanged.addListener(
-    function(text, suggest) {
-      suggest([
-        {
-          content    : "`u",
-          description: "Undo the last bulb"
-        }, {
-          content    : "`c",
-          description: "Clear all the local cache"
-        }, {
-          content    : "`e",
-          description: "Automatically close the Microsoft Login menu"
-        }, {
-          content    : "`d",
-          description: "Disable automatically close the Microsoft" +
-          " Login menu"
-        }, {
-          content    : "`a",
-          description: "Set a fixed location on this device"
-        }
-      ]);
-    });
+  function(text, suggest) {
+    suggest([
+      {
+        content    : "`u",
+        description: "Undo the last bulb"
+      }, {
+        content    : "`c",
+        description: "Clear all the local cache"
+      }, {
+        content    : "`e",
+        description: "Automatically close the Microsoft Login menu"
+      }, {
+        content    : "`d",
+        description: "Disable automatically close the Microsoft" +
+        " Login menu"
+      }, {
+        content    : "`a",
+        description: "Set a fixed location on this device"
+      }
+    ]);
+  });
 
 // This event is fired with the user accepts the input in the omnibox.
 chrome.omnibox.onInputEntered.addListener(text => {
-      processRawBulbInput(text);
-    }
+    processRawBulbInput(text);
+  }
 );
 
 chrome.runtime.onMessage.addListener(
-    request => {
-      if (request.task === "pushBulb") {
-        processRawBulbInput(request.body);
-      }
+  request => {
+    if (request.task === "pushBulb") {
+      processRawBulbInput(request.body);
     }
+  }
 );
 
 /**
@@ -530,19 +538,21 @@ function processRawBulbInput(text) {
 
 /**
  * Processes a command
- * Whenever a new command is added, do not forget to update the listener
- * above
+ * Whenever a new command is added, do not forget to update the
+ * listener above
  * @param {string} cmd - a command to be processed, without $
  */
 function processCommand(cmd) {
   if (cmd == "e" || cmd === "enable") {
     // Enable sign-in to get the code
     chrome.storage.local.set({"enable": "enable"});
-    sendNotification("Command", "Auto-close Microsoft Login menu enabled");
+    sendNotification("Command",
+      "Auto-close Microsoft Login menu enabled");
   } else if (cmd == "d" || cmd === "disable") {
     // Disable automatically closing anoxic.me/journal/callback.html
     chrome.storage.local.set({"enable": ""});
-    sendNotification("Command", "Auto-close Microsoft Login menu disabled");
+    sendNotification("Command",
+      "Auto-close Microsoft Login menu disabled");
   } else if (cmd == "c" || cmd === "clear") {
     chrome.storage.local.clear();
     sendNotification("Command", "All local data memory is cleared");
@@ -557,8 +567,8 @@ function processCommand(cmd) {
 
 /**
  * Attempts to set the address
- * @param cmd - the raw input, starting with 'a '. If the cmd is just 'a ', the
- *     address will be removed
+ * @param cmd - the raw input, starting with 'a '. If the cmd is just
+ *   'a ', the address will be removed
  */
 function attemptSetAddress(cmd) {
   // Filter out "a "
@@ -572,15 +582,15 @@ function attemptSetAddress(cmd) {
       if (parseFloat(arr[0]) == arr[0] && parseFloat(arr[1]) == arr[1]) {
         chrome.storage.local.set({"address": cmd});
         sendNotification("Command",
-            `Local coordinate is set to ${cmd}`);
+          `Local coordinate is set to ${cmd}`);
         return;
       }
     }
 
     chrome.storage.local.get("address", (data) => {
       sendNotification("Error",
-          `Unable to set new coordinates. The old address is ${JSON.stringify(
-              data.address)}`);
+        `Unable to set new coordinates. The old address is ${JSON.stringify(
+          data.address)}`);
     });
   } else {
     // Remove it
@@ -591,7 +601,8 @@ function attemptSetAddress(cmd) {
 }
 
 /**
- * Signs in. Requires help from the extension to close the sign-in page
+ * Signs in. Requires help from the extension to close the sign-in
+ * page
  * @param initiated - whether this has been called before
  * @returns {boolean} - always true
  */
@@ -614,31 +625,32 @@ function signin(initiated) {
 
 /**
  * Signs in or refresh token
- * @param {function} callbackOnSuccess - the callback function when it gets the
- *     token
+ * @param {function} callbackOnSuccess - the callback function when
+ *   it gets the token
  */
 function signInOrRefreshToken(callbackOnSuccess) {
   var initiated = false;
 
   var checkInterval = setInterval(function() {
     getFromStorage("refresh",
-        function(refresh) {
-          if (refresh) {
-            // Stop checking refresh token
-            clearInterval(checkInterval);
-            // Get the token
-            refreshToken(function(token) {
-              // Create a new file and upload it
-              if (typeof callbackOnSuccess === "function") {
-                callbackOnSuccess(token);
-              }
-            })
-          } else {
-            initiated = signin(initiated);
-          }
-        });
+      function(refresh) {
+        if (refresh) {
+          // Stop checking refresh token
+          clearInterval(checkInterval);
+          // Get the token
+          refreshToken(function(token) {
+            // Create a new file and upload it
+            if (typeof callbackOnSuccess === "function") {
+              callbackOnSuccess(token);
+            }
+          })
+        } else {
+          initiated = signin(initiated);
+        }
+      });
   }, 1000);
 }
+
 /**
  * Saves the changes and upload it to onedrive folder
  * @param {string} value - The content to be uploaded
@@ -648,50 +660,42 @@ function saveChanges(value) {
   signInOrRefreshToken((token) => {
 
     chrome.storage.local.get("address", (address) => {
-      // Get the current position anyways
-      navigator.geolocation.getCurrentPosition((e) => {
-        var locationArray = [];
+      let locationArray = [];
+      let latitude = null;
+      let longitude = null;
 
-        if (address && address.address) {
-          // Convert from the object
-          address = address.address;
-          // Try to validate it
-          locationArray = address.split(" ");
-          if (!(locationArray.length === 2 &&
-              locationArray[0] == parseFloat(locationArray[0]) &&
-              locationArray[1] == parseFloat(locationArray[1]))) {
-            locationArray = [];
-          } else {
-            var latitude = locationArray[0],
-                longitude = locationArray[1];
-          }
+      if (address && address.address) {
+        // Convert from the object
+        address = address.address;
+        // Try to validate it
+        locationArray = address.split(" ");
+        if (!(locationArray.length === 2 &&
+            locationArray[0] == parseFloat(locationArray[0]) &&
+            locationArray[1] == parseFloat(locationArray[1]))) {
+          locationArray = [];
+        } else {
+          latitude = locationArray[0];
+          longitude = locationArray[1];
         }
+      }
 
-        // If address is invalid, use current address
-        if (!locationArray.length) {
-          latitude = e.coords.latitude;
-          longitude = e.coords.longitude;
-
-          locationArray = [latitude, longitude];
-        }
-
-        $.ajax({
-          type: "GET",
-          url : "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + latitude + "," + longitude + "&key=AIzaSyBlGNER0WjTkyMuyJQKN73H3vYkrbtXIXU"
-        }).done((data) => {
-          if (data && data.results && data.results[0]) {
-            var address = data.results[0]["formatted_address"];
-            // Push to the front of the array
-            locationArray.splice(0, 0, address);
-          }
-          uploadFileBulb(value, token, locationArray)
-        }).fail(() => {
-          // The data was not fetched
-          uploadFileBulb(value, token, locationArray);
-        })
-      }, () => {
-        // Failed
+      if (!latitude || !longitude) {
         uploadFileBulb(value, token);
+      }
+
+      $.ajax({
+        type: "GET",
+        url : "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + latitude + "," + longitude + "&key=AIzaSyBlGNER0WjTkyMuyJQKN73H3vYkrbtXIXU"
+      }).done((data) => {
+        if (data && data.results && data.results[0]) {
+          var address = data.results[0]["formatted_address"];
+          // Push to the front of the array
+          locationArray.splice(0, 0, address);
+        }
+        uploadFileBulb(value, token, locationArray)
+      }).fail(() => {
+        // The data was not fetched
+        uploadFileBulb(value, token, locationArray);
       });
     });
   });
@@ -706,12 +710,12 @@ function saveChanges(value) {
  */
 function uploadFileBulb(data, token, locationArray, callback) {
   var d = new Date(),
-      month = d.getMonth() + 1,
-      day = d.getDate(),
-      year = d.getFullYear() % 100,
-      hour = d.getHours(),
-      minute = d.getMinutes(),
-      second = d.getSeconds();
+    month = d.getMonth() + 1,
+    day = d.getDate(),
+    year = d.getFullYear() % 100,
+    hour = d.getHours(),
+    minute = d.getMinutes(),
+    second = d.getSeconds();
   month = month < 10 ? "0" + month : month;
   day = day < 10 ? "0" + day : day;
   year = year < 10 ? "0" + year : year;
@@ -731,22 +735,22 @@ function uploadFileBulb(data, token, locationArray, callback) {
     contentType: "text/plain",
     data       : data
   })
-      .done(function(d) {
-        if (d && d["id"]) {
-          lastItemID = d["id"];
-        }
+    .done(function(d) {
+      if (d && d["id"]) {
+        lastItemID = d["id"];
+      }
 
-        sendNotification("Bulb Pushed", data);
-      })
-      .fail(function(xhr, status, error) {
-        alert("Error",
-            "Unable to upload the file. The server returns \"" + error + "\"");
-      })
-      .always(function() {
-        if (typeof callback === "function") {
-          callback();
-        }
-      });
+      sendNotification("Bulb Pushed", data);
+    })
+    .fail(function(xhr, status, error) {
+      alert("Error",
+        "Unable to upload the file. The server returns \"" + error + "\"");
+    })
+    .always(function() {
+      if (typeof callback === "function") {
+        callback();
+      }
+    });
 }
 
 
@@ -762,13 +766,15 @@ function sendNotification(title, body) {
   });
 
   var sound = title == "Error" ? new Audio("static/fail.ogg") : new Audio(
-      "static/success.ogg");
+    "static/success.ogg");
   sound.play();
 }
 
 /**
- * Undoes the last bulb just pushed. Should only work on bulb just pushed
- * @param {function()} callback - the callback function after everything is done
+ * Undoes the last bulb just pushed. Should only work on bulb just
+ * pushed
+ * @param {function()} callback - the callback function after
+ *   everything is done
  */
 function undoBulb(callback) {
   if (lastItemID) {
@@ -777,27 +783,27 @@ function undoBulb(callback) {
         type: "DELETE",
         url : "https://api.onedrive.com/v1.0/drive/items/" + lastItemID + "?access_token=" + token
       })
-          .done(function(d, status, xhr) {
-            if (xhr.status == 204) {
-              sendNotification("Bulb removed",
-                  "The last bulb is removed");
-            } else {
-              sendNotification("Error", "Unable to remove the bulb");
-              console.log(d);
-              console.log(status);
-              console.log(xhr);
-            }
-            lastItemID = undefined;
-          })
-          .fail(function(xhr, status, error) {
-            sendNotification("Error",
-                "Unable to remove the bulb. The server returns \"" + error + "");
-          })
-          .always(function() {
-            if (typeof callback === "function") {
-              callback();
-            }
-          });
+        .done(function(d, status, xhr) {
+          if (xhr.status == 204) {
+            sendNotification("Bulb removed",
+              "The last bulb is removed");
+          } else {
+            sendNotification("Error", "Unable to remove the bulb");
+            console.log(d);
+            console.log(status);
+            console.log(xhr);
+          }
+          lastItemID = undefined;
+        })
+        .fail(function(xhr, status, error) {
+          sendNotification("Error",
+            "Unable to remove the bulb. The server returns \"" + error + "");
+        })
+        .always(function() {
+          if (typeof callback === "function") {
+            callback();
+          }
+        });
     })
   } else {
     sendNotification("Error", "Track to the last bulb lost");
@@ -809,7 +815,9 @@ function undoBulb(callback) {
 // region Tab Navigation
 
 // To receive the message from foreground
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function(request,
+                                              sender,
+                                              sendResponse) {
   console.log(sender.tab ? "from a content script:" + sender.tab.url : "from the extension");
   if (!sender.tab) {
     return;
@@ -874,28 +882,28 @@ function uploadFilePasscode(data, token, success, callback) {
     contentType: "text/plain",
     data       : data
   })
-      .done(function() {
-        if (typeof success === "function") {
-          success();
-        }
-      })
-      .fail(function(xhr, status, error) {
-        alert("Error",
-            "Unable to upload the passcode. The server returns \"" + error + "\"");
-      })
-      .always(function() {
-        if (typeof callback === "function") {
-          callback();
-        }
-      });
+    .done(function() {
+      if (typeof success === "function") {
+        success();
+      }
+    })
+    .fail(function(xhr, status, error) {
+      alert("Error",
+        "Unable to upload the passcode. The server returns \"" + error + "\"");
+    })
+    .always(function() {
+      if (typeof callback === "function") {
+        callback();
+      }
+    });
 }
 
 
 /**
  * Backs up the passcode file
  * @param token - a valid token
- * @param {function} success - what to do if copy is a success, with the data,
- *                             e.g. function(data) {console.log(data)}
+ * @param {function} success - what to do if copy is a success, with
+ *   the data, e.g. function(data) {console.log(data)}
  * @param {function} fail - what to do if copy is a success
  * @param {function} always - what to do after everything is done
  */
@@ -927,12 +935,12 @@ function getPasscode(token, success, fail, always) {
  */
 function backupPasscode(token, success, fail, always) {
   var d = new Date(),
-      month = d.getMonth() + 1,
-      day = d.getDate(),
-      year = d.getFullYear() % 100,
-      hour = d.getHours(),
-      minute = d.getMinutes(),
-      second = d.getSeconds();
+    month = d.getMonth() + 1,
+    day = d.getDate(),
+    year = d.getFullYear() % 100,
+    hour = d.getHours(),
+    minute = d.getMinutes(),
+    second = d.getSeconds();
   month = month < 10 ? "0" + month : month;
   day = day < 10 ? "0" + day : day;
   year = year < 10 ? "0" + year : year;
@@ -940,7 +948,7 @@ function backupPasscode(token, success, fail, always) {
   minute = minute < 10 ? "0" + minute : minute;
   second = second < 10 ? "0" + second : second;
   var stringifiedData = "_" + month + day + year + "_" + hour + minute + second,
-      filePath = "/Documents/Ingress/eBay/Passcode/passcode.csv";
+    filePath = "/Documents/Ingress/eBay/Passcode/passcode.csv";
 
   $.ajax({
     type       : "POST",
@@ -971,10 +979,13 @@ function backupPasscode(token, success, fail, always) {
 
 /**
  * Ask to fetch the data.
- * Request: { task : passcodeFetch/passcodeSave, data: {{dataToBeUploaded}} }
- * Response: { fail: true/false, data: rawFetchedPasscode/undefined }
+ * Request: { task : passcodeFetch/passcodeSave, data:
+ * {{dataToBeUploaded}} } Response: { fail: true/false, data:
+ * rawFetchedPasscode/undefined }
  */
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request,
+                                      sender,
+                                      sendResponse) => {
   if (request.task === "passcodeFetch") {
     refreshToken((token) => {
 
