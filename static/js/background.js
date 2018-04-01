@@ -504,7 +504,7 @@ chrome.omnibox.onInputChanged.addListener(
         " Login menu"
       }, {
         content    : "`a",
-        description: "Set a fixed location on this device"
+        description: "Set a fixed location on this device (format: `a latitude longitude)"
       }
     ]);
   });
@@ -543,26 +543,41 @@ function processRawBulbInput(text) {
  * @param {string} cmd - a command to be processed, without $
  */
 function processCommand(cmd) {
-  if (cmd == "e" || cmd === "enable") {
+  if (cmd === "e" || cmd === "enable") {
     // Enable sign-in to get the code
     chrome.storage.local.set({"enable": "enable"});
     sendNotification("Command",
       "Auto-close Microsoft Login menu enabled");
-  } else if (cmd == "d" || cmd === "disable") {
+  } else if (cmd === "d" || cmd === "disable") {
     // Disable automatically closing anoxic.me/journal/callback.html
     chrome.storage.local.set({"enable": ""});
     sendNotification("Command",
       "Auto-close Microsoft Login menu disabled");
-  } else if (cmd == "c" || cmd === "clear") {
+  } else if (cmd === "c" || cmd === "clear") {
     chrome.storage.local.clear();
     sendNotification("Command", "All local data memory is cleared");
-  } else if (cmd == "u" || cmd === "undo") {
+  } else if (cmd === "u" || cmd === "undo") {
     undoBulb();
-  } else if (cmd == "a" || cmd.startsWith("a ")) {
+  } else if (cmd === "a" || cmd.startsWith("a ")) {
     attemptSetAddress(cmd);
   } else {
     sendNotification("Command", "Unknown command");
   }
+}
+
+/**
+ * Extracts locatino from google map url
+ * @param url - looks like
+ *   "https://www.google.com/maps/@47.6259216,-122.3429354,16z"
+ */
+function attemptExtractResultFromGoogleMapUrl(url) {
+  let arr = url.split("/").slice(-1)[0].substr(1).split(",");
+
+  if (arr.length >=2) {
+    return arr.slice(0, 2);
+  }
+
+  return null;
 }
 
 /**
@@ -575,16 +590,30 @@ function attemptSetAddress(cmd) {
   cmd = cmd.substr(2);
   if (cmd.length) {
     // Validate it
-    var arr = cmd.substr(2).split(" ");
-    if (arr.length == 2) {
+
+    // todo do a parser to parse google map position
+    let arr = attemptExtractResultFromGoogleMapUrl(cmd) ||
+      cmd.split(" ");
+
+    if (arr.length !== 2) {
+      // Use another separator
+      arr = cmd.split(",");
+    }
+
+    if (arr.length === 2) {
       // Do implicit conversion here to make sure they are both valid
       // numbers
       if (parseFloat(arr[0]) == arr[0] && parseFloat(arr[1]) == arr[1]) {
+        cmd = arr.join(" ");
         chrome.storage.local.set({"address": cmd});
         sendNotification("Command",
           `Local coordinate is set to ${cmd}`);
         return;
       }
+
+      sendNotification("Error",
+        `Unable to set new coordinates because the format is not valid. The old address is ${JSON.stringify(
+          data.address)}`);
     }
 
     chrome.storage.local.get("address", (data) => {
