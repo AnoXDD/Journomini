@@ -7,136 +7,19 @@ $tableHeight: 451px;
 $tableHistoryHeight: $tableHeight + 49px;
 $tableQueryHeight: $tableHeight - 35px;
 
-body.passcode-fetcher {
-  font-family: Roboto;
-  overflow: hidden;
-
-  #passcode-amount {
-    display: inline-block;
-    position: relative;
-    top: 1px;
-    width: 30px;
-    text-align: center;
-  }
-
-  #passcode-result {
-    resize: none;
-    font-family: Roboto;
-    font-size: 12px;
-  }
-
-  .passcode-result-wrapper {
-    position: absolute;
-    right: 3px;
-    bottom: 0;
-    width: 200px;
-    resize: none;
-  }
-
-  .mdl-card {
-    min-height: 0;
-    width: $cardWidth;
-
-    .mdl-card__supporting-text {
-      text-align: center;
-      align-self: center;
-    }
-
-    .mdl-card__actions {
-      &.mdl-card--center {
-        text-align: center;
-      }
-    }
-  }
-
-  .mdl-data-table {
-    width: $tableWidth;
-    height: $tableHeight;
-    overflow-y: visible;
-    overflow-x: hidden;
-    display: block;
-
-    &#passcode-history, &#passcode-add {
-      height: $tableHistoryHeight;
-    }
-
-    &#passcode-query-result {
-      height: $tableQueryHeight;
-
-      .emphasis {
-        font-weight: bold;
-      }
-    }
-
-    &#passcode-query-result, &#passcode-add {
-      td {
-        &:first-child {
-          width: $tableQueryFirstColWidth;
-        }
-
-        &:last-child {
-          width: $tableWidth - $tableQueryFirstColWidth;
-          text-align: left;
-        }
-      }
-
-    }
-
-    .passcode-query-edit, .passcode-add-input {
-      border: none;
-      background: transparent;
-      font-family: inherit;
-      font-weight: inherit;
-      width: 100%;
-      outline: none;
-    }
-
-    .passcode-add-textarea {
-      resize: none;
-      height: 329px;
-      font-family: monospace;
-      text-transform: uppercase;
-    }
-
-    .checkbox-col {
-      width: 60px;
-    }
-
-    .type-col {
-      width: 72%;
-    }
-
-    .time-col {
-      white-space: pre;
-      width: 64px;
-    }
-
-    .passcode-col {
-      white-space: pre;
-      max-width: 220px;
-      width: 220px;
-    }
-
-    .transaction-id-col {
-      font-family: monospace;
-    }
-  }
-
-  .mdl-progress {
-    position: absolute;
-    top: 0;
-    width: 100%;
-  }
+html, body {
+  width: 600px;
+  height: 800px;
 }
 
 .content {
-  margin: 25px 0;
-  flex-grow: 0;
-  -webkit-flex-grow: 0;
+  box-sizing: border-box;
+  padding: 25px;
+  width: 100%;
 
   .mdl-card {
     margin: 0 auto;
-    width: 600px;
+    width: 100%;
     padding: 20px;
     min-height: 100px;
 
@@ -160,7 +43,9 @@ body.passcode-fetcher {
     }
 
     .mdl-card__supporting-text {
-      padding-left: 50px;
+      .match:before {
+        content: "Matches: "
+      }
     }
 
     .mdl-card__actions {

@@ -1,29 +1,31 @@
-// Watches for the Live Login Popup to store token and closes the window.
+// Watches for the Live Login Popup to store token and closes the
+// window.
 window.addEventListener("load", function() {
   console.log("Loading scripts from Journomini");
 
-  chrome.storage.local.get("enable", function(result) {
-    if (result.enable == "enable") {
-      if (window.location.origin + window.location.pathname == "https://anoxic.me/journal/callbackJournomini.html") {
-        var search = window.location.search;
-        // Get refresh token
-        var prefix = "?code=";
-
-        var start = search.indexOf(prefix);
-        if (start >= 0) {
-          start = start + prefix.length;
-
-          var code = search.substring(start);
-
-          // Store it
-          chrome.storage.local.set({"code": code});
-
-          // Close the window
-          window.close();
-        }
-      }
+  chrome.storage.local.get("code", function(result) {
+    if (result.code) {
+      return;
     }
 
+    if (window.location.origin + window.location.pathname == "https://anoxic.me/journal/callbackJournomini.html") {
+      var search = window.location.search;
+      // Get refresh token
+      var prefix = "?code=";
+
+      var start = search.indexOf(prefix);
+      if (start >= 0) {
+        start = start + prefix.length;
+
+        var code = search.substring(start);
+
+        // Store it
+        chrome.storage.local.set({"code": code});
+
+        // Close the window
+        window.close();
+      }
+    }
   });
 
   // For other scripts
@@ -31,8 +33,8 @@ window.addEventListener("load", function() {
     "use strict";
 
     var scripts = data.scripts,
-        address = window.location.origin + window.location.pathname,
-        matchedNames = [];
+      address = window.location.origin + window.location.pathname,
+      matchedNames = [];
 
     for (var key in scripts) {
       if (scripts.hasOwnProperty(key)) {
@@ -43,8 +45,8 @@ window.addEventListener("load", function() {
         for (var i = 0; i !== value.match.length; ++i) {
           var match = value.match[i];
           var regex = new RegExp(match.replace(
-              /[-\/\\^$*+?.()|[\]{}]/g,
-              '\\$&'));
+            /[-\/\\^$*+?.()|[\]{}]/g,
+            '\\$&'));
           if (address.match(regex)) {
             // Add to the queue
             matchedNames.push(name);
@@ -139,10 +141,11 @@ function eBayPreProcessor() {
     };
 
     var $input = document.getElementById("msg_cnt_cnt");
-    $input.value = __decode("Wkbmhp#elq#zlvq#jmwfqfpw-#Kfqf$p#zlvq#`lgf9#		") +
-        $input.value +
-        __decode(
-            "		Sofbpf#ofbuf#nf#b#slpjwjuf#effgab`h#je#zlv#fmilz-#Kbuf#b#dqfbw#gbz#9*");
+    $input.value = __decode(
+      "Wkbmhp#elq#zlvq#jmwfqfpw-#Kfqf$p#zlvq#`lgf9#		") +
+      $input.value +
+      __decode(
+        "		Sofbpf#ofbuf#nf#b#slpjwjuf#effgab`h#je#zlv#fmilz-#Kbuf#b#dqfbw#gbz#9*");
   });
 
   var $parent = document.querySelector("#CUSubmitForm .tas");
@@ -151,9 +154,9 @@ function eBayPreProcessor() {
   // Make the item price changable
   var $itemPrice = document.getElementById("itemPrice");
   $itemPrice
-      .outerHTML = '<input onclick="this.select()" id="itemPrice" value="' + $itemPrice
-          .textContent
-          .substr(1) + '">';
+    .outerHTML = '<input onclick="this.select()" id="itemPrice" value="' + $itemPrice
+    .textContent
+    .substr(1) + '">';
 }
 
 
@@ -167,7 +170,7 @@ function freeFacebook(command) {
   function __plugin_removeAnnoyingStuffs() {
     console.log("FreeFacebook activated");
     var keywords = (command || filterAdWords)
-        .split(",");
+      .split(",");
 
     // Remove the sidebar ads
     document.getElementById("pagelet_ego_pane").style.display = "none";
@@ -211,7 +214,7 @@ function freeGooglePlus(command) {
   function __plugin_removeAnnoyingStuffs() {
     console.log("FreeGooglePlus activated");
     var keywords = (command || filterAdWords)
-        .split(",");
+      .split(",");
 
     // Yeah I know it's ugly. But so what? It fucking works!
     setInterval(() => {
@@ -267,7 +270,7 @@ function cleanMessenger(command) {
           var re = new RegExp(keywords[j], "ig");
           if (item.textContent.match(re)) {
             text = text.replace(re,
-                `<span style="filter:blur(6px);opacity:0.2">${keywords[j]}</\span>`);
+              `<span style="filter:blur(6px);opacity:0.2">${keywords[j]}</\span>`);
           }
         }
         if (text !== item.innerHTML) {
@@ -278,7 +281,8 @@ function cleanMessenger(command) {
       // Push the last bulb if ends with
       if (contents.length) {
         let lastItem = contents.item(contents.length - 1);
-        if (lastItem.parentNode.parentNode.getAttribute("data-tooltip-position") === "right") {
+        if (lastItem.parentNode.parentNode.getAttribute(
+            "data-tooltip-position") === "right") {
           // It's on the right side, sent by me
           let text = lastItem.innerText;
           if (text.startsWith(bulbStartsWith)) {
@@ -331,12 +335,12 @@ function betterTabs() {
 }
 
 chrome.extension.onMessage.addListener(
-    function(request, sender, sendResponse) {
-      if (request.method === "fetchActiveTabHtml") {
-        sendResponse({
-          data  : document.all[0].outerHTML,
-          method: "fetchActiveTabHtml"
-        });
-      }
+  function(request, sender, sendResponse) {
+    if (request.method === "fetchActiveTabHtml") {
+      sendResponse({
+        data  : document.all[0].outerHTML,
+        method: "fetchActiveTabHtml"
+      });
     }
+  }
 );
